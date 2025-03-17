@@ -24,13 +24,13 @@ class ClientRecord(BaseRecord):
             record_id: Unique identifier for the client
             name: Full name of the client
             address_line1: First line of client's address
+            address_line2: Second line of client's address
+            address_line3: Third line of client's address
             city: Client's city
+            state: Client's state or province
+            zip_code: Client's postal code
             country: Client's country
             phone_number: Client's contact number
-            address_line2: Second line of client's address (optional)
-            address_line3: Third line of client's address (optional)
-            state: Client's state or province (optional)
-            zip_code: Client's postal code (optional)
         """
         super().__init__(record_id, "client")
         self.name = name
