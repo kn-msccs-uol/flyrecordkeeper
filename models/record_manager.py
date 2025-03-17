@@ -17,6 +17,9 @@ from flight_record import FlightRecord
 # Import the file handler
 from utils.file_handler import load_records, save_records, dict_to_record
 
+# Import the validator
+from utils.validators import (validate_client_record, validate_airline_record, validate_flight_record)
+
 
 class RecordManager:
     """
@@ -86,11 +89,11 @@ class RecordManager:
         Args:
             name: Client's name
             address_line1: First line of client's address
-            address_line2: Second line of client's address (optional)
-            address_line3: Third line of client's address (optional)
+            address_line2: Second line of client's address
+            address_line3: Third line of client's address
             city: Client's city
-            state: Client's state (optional)
-            zip_code: Client's postal code (optional)
+            state: Client's state
+            zip_code: Client's postal code
             country: Client's country
             phone_number: Client's phone number
             
@@ -151,8 +154,8 @@ class RecordManager:
         
         return airline_dict
     
-    def create_flight(self, client_id: int, airline_id: int, 
-                     date: datetime, start_city: str, 
+    def create_flight(self, client_id: int, airline_id: int,
+                     date: datetime, start_city: str,
                      end_city: str) -> Dict[str, Any]:
         """
         Create a new flight record.
@@ -170,7 +173,7 @@ class RecordManager:
         # Verify that client and airline exist
         client_exists = any(r.get("id") == client_id and r.get("type") == "client" 
                           for r in self.records)
-        airline_exists = any(r.get("id") == airline_id and r.get("type") == "airline" 
+        airline_exists = any(r.get("id") == airline_id and r.get("type") == "airline"
                            for r in self.records)
         
         if not client_exists:
@@ -236,3 +239,127 @@ class RecordManager:
             List of all record dictionaries
         """
         return self.records
+    
+    def update_record(self, record_id: int, updated_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Update a record with new data.
+        
+        Args:
+            record_id: ID of the record to update
+            updated_data: Dictionary containing the fields to update
+            
+        Returns:
+            Updated record dictionary if successful, None if record not found
+            
+        Raises:
+            ValueError: If validation fails
+        """
+        # Find the record
+        record_index = None
+        for i, record in enumerate(self.records):
+            if record.get("id") == record_id:
+                record_index = i
+                break
+        
+        if record_index is None:
+            return None
+        
+        # Get the record and its type
+        record = self.records[record_index]
+        record_type = record.get("type")
+        
+        # Create a copy of the record with updates
+        updated_record = record.copy()
+        updated_record.update(updated_data)
+        
+        # Validate the updated record
+        errors = {}
+        if record_type == "client":
+            errors = validate_client_record(updated_record)
+        elif record_type == "airline":
+            errors = validate_airline_record(updated_record)
+        elif record_type == "flight":
+            # Convert string date to datetime if necessary
+            if "date" in updated_data and isinstance(updated_data["date"], str):
+                try:
+                    updated_data["date"] = datetime.fromisoformat(updated_data["date"])
+                    updated_record["date"] = updated_data["date"]
+                except ValueError:
+                    errors["date"] = "Invalid date format"
+            
+            # Check referential integrity
+            if "client_id" in updated_data:
+                client_exists = any(r.get("id") == updated_data["client_id"] and 
+                                r.get("type") == "client" for r in self.records)
+                if not client_exists:
+                    errors["client_id"] = f"Client with ID {updated_data['client_id']} does not exist"
+            
+            if "airline_id" in updated_data:
+                airline_exists = any(r.get("id") == updated_data["airline_id"] and 
+                                r.get("type") == "airline" for r in self.records)
+                if not airline_exists:
+                    errors["airline_id"] = f"Airline with ID {updated_data['airline_id']} does not exist"
+            
+            if not errors:
+                errors = validate_flight_record(updated_record)
+        
+        # If there are validation errors, raise an exception
+        if errors:
+            error_msg = "; ".join(f"{key}: {value}" for key, value in errors.items())
+            raise ValueError(f"Validation errors: {error_msg}")
+        
+        # Update the record
+        self.records[record_index] = updated_record
+        
+        # Save to file
+        self.save_to_file()
+        
+        return updated_record
+    
+    def delete_record(self, record_id: int) -> bool:
+        """
+        Delete a record by ID.
+        
+        Args:
+            record_id: ID of the record to delete
+            
+        Returns:
+            True if successful, False if record not found or can't be deleted
+            
+        Raises:
+            ValueError: If the record is referenced by other records
+        """
+        # Find the record
+        record_index = None
+        record_type = None
+        for i, record in enumerate(self.records):
+            if record.get("id") == record_id:
+                record_index = i
+                record_type = record.get("type")
+                break
+        
+        if record_index is None:
+            return False
+        
+        # Check if record can be deleted
+        if record_type == "client":
+            # Check if any flight references this client
+            referenced = any(r.get("type") == "flight" and r.get("client_id") == record_id 
+                        for r in self.records)
+            if referenced:
+                raise ValueError(f"Cannot delete client with ID {record_id} because it is referenced by flight records")
+        
+        elif record_type == "airline":
+            # Check if any flight references this airline
+            referenced = any(r.get("type") == "flight" and r.get("airline_id") == record_id 
+                        for r in self.records)
+            if referenced:
+                raise ValueError(f"Cannot delete airline with ID {record_id} because it is referenced by flight records")
+        
+        # Delete the record
+        del self.records[record_index]
+        
+        # Save to file
+        self.save_to_file()
+        
+        return True
