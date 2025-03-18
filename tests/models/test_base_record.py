@@ -1,6 +1,10 @@
 import unittest
-from models.base_record import BaseRecord
+import sys
+import os
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src")))
+
+from models.base_record import BaseRecord
 
 class TestBaseRecord(unittest.TestCase):
 
@@ -38,7 +42,6 @@ class TestBaseRecord(unittest.TestCase):
         """Ensure that record type is stored correctly"""
         self.assertTrue(hasattr(self.base_record, "type"))
         self.assertEqual(self.base_record.type, self.record_type)
-
 
 if __name__ == "__main__":
     unittest.main()
