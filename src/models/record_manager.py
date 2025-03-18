@@ -4,8 +4,7 @@ Record Manager module for FlyRecordKeeper.
 This module provides functionality for creating, reading, updating,
 and deleting (CRUD) records in the system.
 """
-import os
-from typing import List, Dict, Any, Union, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 
 # Import the record classes
@@ -18,7 +17,7 @@ from flight_record import FlightRecord
 from utils.file_handler import load_records, save_records, dict_to_record
 
 # Import the validator
-from utils.validators import (validate_client_record, validate_airline_record, validate_flight_record)
+from utils.validators import validate_client_record, validate_airline_record, validate_flight_record
 
 
 class RecordManager:
@@ -231,6 +230,33 @@ class RecordManager:
         """
         return [record for record in self.records if record.get("type") == record_type]
     
+    def get_related_records(self, record_id: int, record_type: str) -> List[Dict[str, Any]]:
+        """
+        Get all records that relate to a specific record.
+        
+        Args:
+            record_id: ID of the reference record
+            record_type: Type of the reference record ('client' or 'airline')
+            
+        Returns:
+            List of records that reference this record
+        """
+        related_records = []
+        
+        if record_type == "client":
+            # Find flights that reference this client
+            related_records = [r for r in self.records 
+                            if r.get("type") == "flight" and 
+                                r.get("client_id") == record_id]
+        
+        elif record_type == "airline":
+            # Find flights that reference this airline
+            related_records = [r for r in self.records 
+                            if r.get("type") == "flight" and 
+                                r.get("airline_id") == record_id]
+        
+        return related_records
+    
     def get_all_records(self) -> List[Dict[str, Any]]:
         """
         Retrieve all records in the system.
@@ -240,81 +266,140 @@ class RecordManager:
         """
         return self.records
     
-    def update_record(self, record_id: int, updated_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def create_record_with_validation(self, record_type: str, record_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Update a record with new data.
+        Create a new record with validation and relationship checking.
         
         Args:
-            record_id: ID of the record to update
-            updated_data: Dictionary containing the fields to update
+            record_type: Type of record to create ('client', 'airline', or 'flight')
+            record_data: Dictionary containing the record data
             
         Returns:
-            Updated record dictionary if successful, None if record not found
+            Newly created record dictionary
             
         Raises:
             ValueError: If validation fails
         """
-        # Find the record
-        record_index = None
-        for i, record in enumerate(self.records):
-            if record.get("id") == record_id:
-                record_index = i
-                break
         
-        if record_index is None:
-            return None
+        # Generate a new ID
+        record_id = self.get_next_id()
+        record_data["id"] = record_id
+        record_data["type"] = record_type
         
-        # Get the record and its type
-        record = self.records[record_index]
-        record_type = record.get("type")
+        # Handle date conversion for flight records
+        if record_type == "flight" and "date" in record_data and isinstance(record_data["date"], str):
+            try:
+                record_data["date"] = datetime.fromisoformat(record_data["date"])
+            except ValueError:
+                raise ValueError("Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)")
         
-        # Create a copy of the record with updates
-        updated_record = record.copy()
-        updated_record.update(updated_data)
-        
-        # Validate the updated record
+        # Validate based on record type
         errors = {}
         if record_type == "client":
-            errors = validate_client_record(updated_record)
+            errors = validate_client_record(record_data)
         elif record_type == "airline":
-            errors = validate_airline_record(updated_record)
+            errors = validate_airline_record(record_data)
         elif record_type == "flight":
-            # Convert string date to datetime if necessary
-            if "date" in updated_data and isinstance(updated_data["date"], str):
-                try:
-                    updated_data["date"] = datetime.fromisoformat(updated_data["date"])
-                    updated_record["date"] = updated_data["date"]
-                except ValueError:
-                    errors["date"] = "Invalid date format"
-            
-            # Check referential integrity
-            if "client_id" in updated_data:
-                client_exists = any(r.get("id") == updated_data["client_id"] and 
-                                r.get("type") == "client" for r in self.records)
-                if not client_exists:
-                    errors["client_id"] = f"Client with ID {updated_data['client_id']} does not exist"
-            
-            if "airline_id" in updated_data:
-                airline_exists = any(r.get("id") == updated_data["airline_id"] and 
-                                r.get("type") == "airline" for r in self.records)
-                if not airline_exists:
-                    errors["airline_id"] = f"Airline with ID {updated_data['airline_id']} does not exist"
-            
-            if not errors:
-                errors = validate_flight_record(updated_record)
+            errors = validate_flight_record(record_data, self.records)
+        else:
+            raise ValueError(f"Unknown record type: {record_type}")
         
         # If there are validation errors, raise an exception
         if errors:
             error_msg = "; ".join(f"{key}: {value}" for key, value in errors.items())
             raise ValueError(f"Validation errors: {error_msg}")
         
-        # Update the record
-        self.records[record_index] = updated_record
+        # Create the record
+        self.records.append(record_data)
+        
+        # Save to file
+        self.save_to_file()
+        
+        return record_data
+    
+    def update_record_with_validation(self, record_id: int, updated_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update a record with validation and relationship checking.
+        
+        Args:
+            record_id: ID of the record to update
+            updated_data: Dictionary containing the fields to update
+            
+        Returns:
+            Updated record dictionary if successful
+            
+        Raises:
+            ValueError: If validation fails or if update would break referential integrity
+        """
+        
+        # Find the record
+        record = self.get_record_by_id(record_id)
+        if not record:
+            raise ValueError(f"Record with ID {record_id} not found")
+        
+        # Create a copy of the record with updates
+        updated_record = record.copy()
+        updated_record.update(updated_data)
+        
+        # Get record type
+        record_type = record.get("type")
+        
+        # Handle date conversion for flight records
+        if record_type == "flight" and "date" in updated_data and isinstance(updated_data["date"], str):
+            try:
+                updated_data["date"] = datetime.fromisoformat(updated_data["date"])
+                updated_record["date"] = updated_data["date"]
+            except ValueError:
+                raise ValueError("Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)")
+        
+        # Validate based on record type
+        errors = {}
+        if record_type == "client":
+            errors = validate_client_record(updated_record)
+        elif record_type == "airline":
+            errors = validate_airline_record(updated_record)
+        elif record_type == "flight":
+            errors = validate_flight_record(updated_record, self.records)
+        
+        # If there are validation errors, raise an exception
+        if errors:
+            error_msg = "; ".join(f"{key}: {value}" for key, value in errors.items())
+            raise ValueError(f"Validation errors: {error_msg}")
+        
+        # Update the record in the records list
+        for i, r in enumerate(self.records):
+            if r.get("id") == record_id:
+                self.records[i] = updated_record
+                break
         
         # Save to file
         self.save_to_file()
         
         return updated_record
+    
+    def check_can_delete(self, record_id: int) -> tuple[bool, str]:
+        """
+        Check if a record can be safely deleted without breaking relationships.
+        
+        Args:
+            record_id: ID of the record to check
+            
+        Returns:
+            Tuple of (can_delete, reason) where reason explains why deletion is not allowed
+        """
+        # Find the record
+        record = self.get_record_by_id(record_id)
+        if not record:
+            return False, f"Record with ID {record_id} not found"
+        
+        record_type = record.get("type")
+        
+        if record_type in ["client", "airline"]:
+            related_records = self.get_related_records(record_id, record_type)
+            if related_records:
+                return False, f"Cannot delete {record_type} with ID {record_id} because it is referenced by {len(related_records)} flight records"
+        
+        return True, ""
     
     def delete_record(self, record_id: int) -> bool:
         """
