@@ -7,14 +7,8 @@ and deleting (CRUD) records in the system.
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
-# Import the record classes
-from models.base_record import BaseRecord
-from models.client_record import ClientRecord
-from models.airline_record import AirlineRecord
-from models.flight_record import FlightRecord
-
 # Import the file handler
-from utils.file_handler import load_records, save_records, dict_to_record
+from utils.file_handler import load_records, save_records
 
 # Import the validator
 from utils.validators import validate_client_record, validate_airline_record, validate_flight_record
