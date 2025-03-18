@@ -3,7 +3,7 @@ Flight Record module for FlyRecordKeeper.
 
 This module defines the FlightRecord class for managing flight information.
 """
-from typing import Dict, Any
+from typing import Dict, Any, List
 from datetime import datetime
 from models.base_record import BaseRecord
 
@@ -71,3 +71,57 @@ class FlightRecord(BaseRecord):
             start_city=data["start_city"],
             end_city=data["end_city"]
         )
+    
+    @classmethod
+    def validate(cls, data: Dict[str, Any], all_records: List[Dict[str, Any]] = None) -> Dict[str, str]:
+        """
+        Validate flight record data.
+        
+        Args:
+            data: Dictionary containing flight record data
+            all_records: List of all records for relationship validation
+            
+        Returns:
+            Dictionary of field validation errors (empty if validation succeeds)
+        """
+        from utils.validators import validate_required_field, validate_integer, validate_string, validate_date
+        
+        # Start with base validation
+        errors = super().validate(data)
+        
+        # Required fields
+        required_fields = ["client_id", "airline_id", "date", "start_city", "end_city"]
+        for field in required_fields:
+            error = validate_required_field(data, field)
+            if error:
+                errors[field] = error
+                continue
+                
+            # Field-specific validation
+            if field == "client_id":
+                error = validate_integer(data[field], "Client ID", min_value=1)
+            elif field == "airline_id":
+                error = validate_integer(data[field], "Airline ID", min_value=1)
+            elif field == "date":
+                error = validate_date(data[field])
+            elif field == "start_city":
+                error = validate_string(data[field], "Start city", max_length=50)
+            elif field == "end_city":
+                error = validate_string(data[field], "End city", max_length=50)
+            
+            if error:
+                errors[field] = error
+        
+        # Relationship validation if records are provided
+        if all_records and "client_id" in data and "airline_id" in data:
+            # Check client exists
+            if not any(r.get("id") == data["client_id"] and r.get("type") == "client"
+                    for r in all_records):
+                errors["client_id"] = f"Client with ID {data['client_id']} does not exist"
+            
+            # Check airline exists
+            if not any(r.get("id") == data["airline_id"] and r.get("type") == "airline"
+                    for r in all_records):
+                errors["airline_id"] = f"Airline with ID {data['airline_id']} does not exist"
+        
+        return errors

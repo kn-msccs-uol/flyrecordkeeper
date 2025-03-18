@@ -87,3 +87,55 @@ class ClientRecord(BaseRecord):
             country=data["country"],
             phone_number=data["phone_number"]
         )
+    
+    @classmethod
+    def validate(cls, data: Dict[str, Any]) -> Dict[str, str]:
+        """
+        Validate client record data.
+        
+        Args:
+            data: Dictionary containing client record data
+            
+        Returns:
+            Dictionary of field validation errors (empty if validation succeeds)
+        """
+        from utils.validators import validate_required_field, validate_string, validate_phone_number
+        
+        # Start with base validation
+        errors = super().validate(data)
+        
+        # Required fields
+        required_fields = ["name", "address_line1", "address_line2", "address_line3", 
+                        "city", "state", "zip_code", "country", "phone_number"]
+        
+        for field in required_fields:
+            error = validate_required_field(data, field)
+            if error:
+                errors[field] = error
+                continue
+                
+            # Field-specific validation
+            if field == "name":
+                error = validate_string(data[field], "Name", max_length=100)
+            elif field == "address_line1":
+                error = validate_string(data[field], "Address line 1", max_length=100)
+            elif field == "address_line2":
+                error = validate_string(data[field], "Address line 2", max_length=100)
+            elif field == "address_line3":
+                error = validate_string(data[field], "Address line 3", max_length=100)
+            elif field == "city":
+                error = validate_string(data[field], "City", max_length=50)
+            elif field == "state":
+                error = validate_string(data[field], "State", max_length=50)
+            elif field == "zip_code":
+                error = validate_string(data[field], "Zip code", max_length=20)
+            elif field == "country":
+                error = validate_string(data[field], "Country", max_length=100)
+            elif field == "phone_number":
+                error = validate_phone_number(data[field])
+            
+            if error:
+                errors[field] = error
+        
+        return errors
+

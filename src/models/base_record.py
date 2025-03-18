@@ -49,3 +49,26 @@ class BaseRecord:
             A new BaseRecord instance
         """
         return cls(record_id=data["id"], record_type=data["type"])
+    
+    @classmethod
+    def validate(cls, data: Dict[str, Any]) -> Dict[str, str]:
+        """
+        Validate basic record data.
+        
+        Args:
+            data: Dictionary containing record data
+            
+        Returns:
+            Dictionary of field validation errors (empty if validation succeeds)
+        """
+        errors = {}
+        
+        # Validate ID if present
+        if "id" in data and not isinstance(data["id"], int):
+            errors["id"] = "ID must be an integer"
+        
+        # Validate type if present
+        if "type" in data and not isinstance(data["type"], str):
+            errors["type"] = "Type must be a string"
+            
+        return errors

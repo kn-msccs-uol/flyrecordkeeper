@@ -53,3 +53,30 @@ class AirlineRecord(BaseRecord):
             record_id=data["id"],
             company_name=data["company_name"]
         )
+    
+    @classmethod
+    def validate(cls, data: Dict[str, Any]) -> Dict[str, str]:
+        """
+        Validate airline record data.
+        
+        Args:
+            data: Dictionary containing airline record data
+            
+        Returns:
+            Dictionary of field validation errors (empty if validation succeeds)
+        """
+        from utils.validators import validate_required_field, validate_string
+        
+        # Start with base validation
+        errors = super().validate(data)
+        
+        # Company name is required
+        error = validate_required_field(data, "company_name")
+        if error:
+            errors["company_name"] = error
+        elif "company_name" in data:
+            error = validate_string(data["company_name"], "Company name", max_length=100)
+            if error:
+                errors["company_name"] = error
+        
+        return errors
