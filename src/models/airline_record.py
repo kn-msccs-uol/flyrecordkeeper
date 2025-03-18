@@ -4,7 +4,7 @@ Airline Record module for FlyRecordKeeper.
 This module defines the AirlineRecord class for managing airline information.
 """
 from typing import Dict, Any
-from base_record import BaseRecord
+from models.base_record import BaseRecord
 
 
 class AirlineRecord(BaseRecord):

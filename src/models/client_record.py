@@ -4,7 +4,7 @@ Client Record module for FlyRecordKeeper.
 This module defines the ClientRecord class for managing client information.
 """
 from typing import Dict, Any
-from base_record import BaseRecord
+from models.base_record import BaseRecord
 
 
 class ClientRecord(BaseRecord):

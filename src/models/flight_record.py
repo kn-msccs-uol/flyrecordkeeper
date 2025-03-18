@@ -5,7 +5,7 @@ This module defines the FlightRecord class for managing flight information.
 """
 from typing import Dict, Any
 from datetime import datetime
-from base_record import BaseRecord
+from models.base_record import BaseRecord
 
 
 class FlightRecord(BaseRecord):

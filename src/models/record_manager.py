@@ -8,10 +8,10 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 # Import the record classes
-from base_record import BaseRecord
-from client_record import ClientRecord
-from airline_record import AirlineRecord
-from flight_record import FlightRecord
+from models.base_record import BaseRecord
+from models.client_record import ClientRecord
+from models.airline_record import AirlineRecord
+from models.flight_record import FlightRecord
 
 # Import the file handler
 from utils.file_handler import load_records, save_records, dict_to_record
