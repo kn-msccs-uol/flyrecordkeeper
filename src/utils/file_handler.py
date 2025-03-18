@@ -10,7 +10,6 @@ from typing import List, Dict, Any, Union
 from datetime import datetime
 
 # Import the record classes
-from models.base_record import BaseRecord
 from models.client_record import ClientRecord
 from models.airline_record import AirlineRecord
 from models.flight_record import FlightRecord
@@ -70,6 +69,10 @@ def save_records(records: List[Dict[str, Any]], filename: str) -> bool:
 def dict_to_record(record_dict: Dict[str, Any]) -> Union[ClientRecord, AirlineRecord, FlightRecord, None]:
     """
     Convert a dictionary to the appropriate record object.
+
+    While the system primarily stores and manipulates records as dictionaries,
+    this function allows conversion to objects when OO functionality is needed
+    (such as for UI display or specialized processing).
     
     Args:
         record_dict: Dictionary containing record data
