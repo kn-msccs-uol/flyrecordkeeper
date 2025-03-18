@@ -4,7 +4,7 @@ Record Manager module for FlyRecordKeeper.
 This module provides functionality for creating, reading, updating,
 and deleting (CRUD) records in the system.
 """
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 # Import the record classes
@@ -99,31 +99,20 @@ class RecordManager:
         Returns:
             Dictionary containing the created client record
         """
-        # Generate a new ID
-        record_id = self.get_next_id()
+        # Create a new client record with all the fields
+        client_data = {
+            "name": name,
+            "address_line1": address_line1,
+            "address_line2": address_line2,
+            "address_line3": address_line3,
+            "city": city,
+            "state": state,
+            "zip_code": zip_code,
+            "country": country,
+            "phone_number": phone_number
+        }
         
-        # Create a new client record
-        client = ClientRecord(
-            record_id=record_id,
-            name=name,
-            address_line1=address_line1,
-            address_line2=address_line2,
-            address_line3=address_line3,
-            city=city,
-            state=state,
-            zip_code=zip_code,
-            country=country,
-            phone_number=phone_number
-        )
-        
-        # Convert to dictionary and add to records
-        client_dict = client.to_dict()
-        self.records.append(client_dict)
-        
-        # Save to file
-        self.save_to_file()
-        
-        return client_dict
+        return self.create_record_with_validation("client", client_data)
     
     def create_airline(self, company_name: str) -> Dict[str, Any]:
         """
@@ -134,24 +123,13 @@ class RecordManager:
             
         Returns:
             Dictionary containing the created airline record
-        """
-        # Generate a new ID
-        record_id = self.get_next_id()
-        
+        """        
         # Create a new airline record
-        airline = AirlineRecord(
-            record_id=record_id,
-            company_name=company_name
-        )
+        airline_data = {
+            "company_name": company_name
+        }
         
-        # Convert to dictionary and add to records
-        airline_dict = airline.to_dict()
-        self.records.append(airline_dict)
-        
-        # Save to file
-        self.save_to_file()
-        
-        return airline_dict
+        return self.create_record_with_validation("airline", airline_data)
     
     def create_flight(self, client_id: int, airline_id: int,
                      date: datetime, start_city: str,
@@ -169,39 +147,16 @@ class RecordManager:
         Returns:
             Dictionary containing the created flight record
         """
-        # Verify that client and airline exist
-        client_exists = any(r.get("id") == client_id and r.get("type") == "client" 
-                          for r in self.records)
-        airline_exists = any(r.get("id") == airline_id and r.get("type") == "airline"
-                           for r in self.records)
-        
-        if not client_exists:
-            raise ValueError(f"Client with ID {client_id} does not exist")
-        
-        if not airline_exists:
-            raise ValueError(f"Airline with ID {airline_id} does not exist")
-        
-        # Generate a new ID
-        record_id = self.get_next_id()
-        
         # Create a new flight record
-        flight = FlightRecord(
-            record_id=record_id,
-            client_id=client_id,
-            airline_id=airline_id,
-            date=date,
-            start_city=start_city,
-            end_city=end_city
-        )
+        flight_data = {
+            "client_id": client_id,
+            "airline_id": airline_id,
+            "date": date,
+            "start_city": start_city,
+            "end_city": end_city
+        }
         
-        # Convert to dictionary and add to records
-        flight_dict = flight.to_dict()
-        self.records.append(flight_dict)
-        
-        # Save to file
-        self.save_to_file()
-        
-        return flight_dict
+        return self.create_record_with_validation("flight", flight_data)
     
     def get_record_by_id(self, record_id: int) -> Optional[Dict[str, Any]]:
         """
@@ -412,34 +367,22 @@ class RecordManager:
             True if successful, False if record not found or can't be deleted
             
         Raises:
-            ValueError: If the record is referenced by other records
+            ValueError: If the record is cannot be deleted
         """
-        # Find the record
+        can_delete, reason = self.check_can_delete(record_id)
+
+        if not can_delete:
+            raise ValueError(reason)
+
+        # Find the record index
         record_index = None
-        record_type = None
         for i, record in enumerate(self.records):
             if record.get("id") == record_id:
                 record_index = i
-                record_type = record.get("type")
                 break
         
         if record_index is None:
             return False
-        
-        # Check if record can be deleted
-        if record_type == "client":
-            # Check if any flight references this client
-            referenced = any(r.get("type") == "flight" and r.get("client_id") == record_id 
-                        for r in self.records)
-            if referenced:
-                raise ValueError(f"Cannot delete client with ID {record_id} because it is referenced by flight records")
-        
-        elif record_type == "airline":
-            # Check if any flight references this airline
-            referenced = any(r.get("type") == "flight" and r.get("airline_id") == record_id 
-                        for r in self.records)
-            if referenced:
-                raise ValueError(f"Cannot delete airline with ID {record_id} because it is referenced by flight records")
         
         # Delete the record
         del self.records[record_index]
