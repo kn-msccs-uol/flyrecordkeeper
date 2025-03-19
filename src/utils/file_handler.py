@@ -81,16 +81,19 @@ def dict_to_record(record_dict: Dict[str, Any]) -> Union[ClientRecord, AirlineRe
         Record object of appropriate type, or None if type is unknown
     """
     record_type = record_dict.get("type", "")
-    
-    if record_type == "client":
-        return ClientRecord.from_dict(record_dict)
-    elif record_type == "airline":
-        return AirlineRecord.from_dict(record_dict)
-    elif record_type == "flight":
-        # Convert date string to datetime object before passing to FlightRecord
-        if "date" in record_dict:
+    record_classes = {
+        "client": ClientRecord,
+        "airline": AirlineRecord,
+        "flight": FlightRecord
+    }
+
+    if record_type in record_classes:
+        # Handle date conversion for flight records
+        if record_type == "flight" and "date" in record_dict and isinstance(record_dict["date"], str):
+            # Convert date string to datetime object before passing to FlightRecord
             record_dict["date"] = datetime.fromisoformat(record_dict["date"])
-        return FlightRecord.from_dict(record_dict)
+        
+        return record_classes[record_type].from_dict(record_dict)
     else:
         print(f"Unknown record type: {record_type}")
         return None
