@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
+from models import record_manager
+
 from views import flight_capture
 
 class FlightView(tk.Frame):
@@ -12,6 +14,7 @@ class FlightView(tk.Frame):
         super(FlightView, self).__init__()
 
         self.parent = parent
+        self.rec_man = record_manager.RecordManager()
 
         self.create_toolbar()
         self.create_treeview()
@@ -51,12 +54,9 @@ class FlightView(tk.Frame):
         treeview.heading("StartCity", text="Start City")
         treeview.heading("EndCity", text="End City")
 
-        # Insert some dummy data
-        data = [
-            ("Darryl", "Emirates", "2025/03/31", "Johannesburg", "Istanbul")
-        ]
+        data = self.rec_man.get_records_by_type('flight')
         for item in data:
-            treeview.insert("", "end", values=item)
+            treeview.insert("", "end", values=(item.client_id, item.airline_id, item.date, item.start_city, item.end_city))
 
         treeview.pack(expand=True, fill=tk.BOTH)       
 

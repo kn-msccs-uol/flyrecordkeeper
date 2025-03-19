@@ -61,7 +61,6 @@ class ClientView(tk.Frame):
         treeview.heading("PhoneNumber", text="PhoneNumber")
 
         data = self.rec_man.get_records_by_type('client')
-        # Insert some dummy data
         for item in data:
             treeview.insert("", "end", values=(item.id, item.name, item.address_line1, item.address_line2, item.address_line3, item.city, item.state, item.zip_code, item.country, item.phone_number))
 
