@@ -12,6 +12,7 @@ This follows the MVC (Model-View-Controller) design pattern where:
 
 from typing import Dict, Any, List, Optional
 from models.record_manager import RecordManager
+from controllers.search_controller import SearchController
 
 
 class ClientController:
@@ -134,24 +135,28 @@ class ClientController:
         # Delete the client record
         return self.record_manager.delete_record(client_id)
     
-    def search_clients(self, search_term: str) -> List[Dict[str, Any]]:
+    def search_clients(self, search_term: str = None, client_id: int = None, 
+                    name: str = None, phone_number: str = None) -> List[Dict[str, Any]]:
         """
-        Search for clients by name or phone number.
+        Search for clients by ID, name, or phone number.
         
         Args:
-            search_term: Term to search for
+            search_term: General term to search in both name and phone number (optional)
+            client_id: Client ID to search for (optional)
+            name: Client name to search for (optional)
+            phone_number: Phone number to search for (optional)
             
         Returns:
-            List of client records matching the search term
+            List of client records matching the search criteria
         """
-        search_term = search_term.lower()
-        clients = self.get_all_clients()
+        search_controller = SearchController(self.record_manager)
         
-        results = []
-        for client in clients:
-            # Search in name and phone number fields only
-            if (search_term in client.get("name", "").lower() or
-                search_term in client.get("phone_number", "").lower()):
-                results.append(client)
+        # If general search term is provided, use it for both name and phone
+        if search_term:
+            name = phone_number = search_term
         
-        return results
+        return search_controller.search_clients(
+            client_id=client_id,
+            name=name,
+            phone_number=phone_number
+        )
