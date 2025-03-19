@@ -12,6 +12,7 @@ This follows the MVC (Model-View-Controller) design pattern where:
 
 from typing import Dict, Any, List, Optional
 from models.record_manager import RecordManager
+from controllers.search_controller import SearchController
 
 
 class AirlineController:
@@ -115,23 +116,26 @@ class AirlineController:
         # Delete the airline record
         return self.record_manager.delete_record(airline_id)
     
-    def search_airlines(self, search_term: str) -> List[Dict[str, Any]]:
+    def search_airlines(self, search_term: str = None, airline_id: int = None,
+                        company_name: str = None) -> List[Dict[str, Any]]:
         """
-        Search for airlines by company name.
+        Search for airlines by ID or company name.
         
         Args:
-            search_term: Term to search for
+            search_term: General term to search in company name (optional)
+            airline_id: Airline ID to search for (optional)
+            company_name: Company name to search for (optional)
             
         Returns:
-            List of airline records matching the search term
+            List of airline records matching the search criteria
         """
-        search_term = search_term.lower()
-        airlines = self.get_all_airlines()
+        search_controller = SearchController(self.record_manager)
         
-        results = []
-        for airline in airlines:
-            # Search in company name
-            if search_term in airline.get("company_name", "").lower():
-                results.append(airline)
+        # If general search term is provided, use it for company name
+        if search_term:
+            company_name = search_term
         
-        return results
+        return search_controller.search_airlines(
+            airline_id=airline_id,
+            company_name=company_name
+        )

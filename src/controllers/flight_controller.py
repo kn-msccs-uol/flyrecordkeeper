@@ -13,6 +13,7 @@ This follows the MVC (Model-View-Controller) design pattern where:
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from models.record_manager import RecordManager
+from controllers.search_controller import SearchController
 
 
 class FlightController:
@@ -127,74 +128,46 @@ class FlightController:
         # Delete the flight record
         return self.record_manager.delete_record(flight_id)
     
-    def search_flights(self, search_term: str = None, client_id: int = None, 
-                      airline_id: int = None, start_city: str = None, 
-                      end_city: str = None) -> List[Dict[str, Any]]:
+    def search_flights(self, search_term: str = None, flight_id: int = None,
+                       client_id: int = None, client_name: str = None, 
+                       client_phone: str = None, airline_id: int = None,
+                       airline_name: str = None, date: datetime = None,
+                       date_range: tuple = None, start_city: str = None,
+                       end_city: str = None) -> List[Dict[str, Any]]:
         """
         Search for flights with various criteria.
         
         Args:
-            search_term: Term to search in cities (optional)
-            client_id: Filter by client ID (optional)
-            airline_id: Filter by airline ID (optional)
-            start_city: Filter by departure city (optional)
-            end_city: Filter by destination city (optional)
+            search_term: General term to search in cities (optional)
+            flight_id: Flight ID to search for (optional)
+            client_id: Client ID to filter by (optional)
+            client_name: Client name to search for (optional)
+            client_phone: Client phone number to search for (optional)
+            airline_id: Airline ID to filter by (optional)
+            airline_name: Airline company name to search for (optional)
+            date: Exact date to match (optional)
+            date_range: Tuple of (start_date, end_date) (optional)
+            start_city: Departure city to search for (optional)
+            end_city: Destination city to search for (optional)
             
         Returns:
-            List of flight records matching the search criteria
+            List of flight records matching all specified search criteria
         """
-        flights = self.get_all_flights()
-        results = []
+        search_controller = SearchController(self.record_manager)
         
-        # Convert search term to lowercase if provided
-        search_term_lower = search_term.lower() if search_term else None
+        # If general search term is provided, use it for both cities
+        if search_term:
+            start_city = end_city = search_term
         
-        for flight in flights:
-            # Check all specified criteria
-            match = True
-            
-            if client_id is not None and flight.get("client_id") != client_id:
-                match = False
-                
-            if airline_id is not None and flight.get("airline_id") != airline_id:
-                match = False
-                
-            if start_city is not None and flight.get("start_city") != start_city:
-                match = False
-                
-            if end_city is not None and flight.get("end_city") != end_city:
-                match = False
-                
-            if search_term_lower is not None:
-                if (search_term_lower not in flight.get("start_city", "").lower() and
-                    search_term_lower not in flight.get("end_city", "").lower()):
-                    match = False
-                    
-            if match:
-                results.append(flight)
-                
-        return results
-    
-    def get_flights_by_client(self, client_id: int) -> List[Dict[str, Any]]:
-        """
-        Get all flights for a specific client.
-        
-        Args:
-            client_id: ID of the client
-            
-        Returns:
-            List of flight records for the specified client
-        """
-        return self.search_flights(client_id=client_id)
-    
-    def get_flights_by_airline(self, airline_id: int) -> List[Dict[str, Any]]:
-        """
-        Get all flights for a specific airline.
-        
-        Args:
-            airline_id: ID of the airline
-            
-        Returns:
-            List of flight records for the specified airline
-        """
-        return self.search_flights(airline_id=airline_id)
+        return search_controller.search_flights(
+            flight_id=flight_id,
+            client_id=client_id,
+            client_name=client_name,
+            client_phone=client_phone,
+            airline_id=airline_id,
+            airline_name=airline_name,
+            date=date,
+            date_range=date_range,
+            start_city=start_city,
+            end_city=end_city
+        )
