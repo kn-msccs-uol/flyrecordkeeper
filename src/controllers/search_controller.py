@@ -2,18 +2,6 @@
 Search Controller module for FlyRecordKeeper.
 
 This module provides centralized search functionality across all record types,
-acting as a service controller that other controllers can leverage.
-
-This follows the MVC (Model-View-Controller) design pattern where:
-1. Model: Record classes and RecordManager
-2. View: GUI components
-3. Controller: This module - provides search services for other controllers
-"""
-
-"""
-Search Controller module for FlyRecordKeeper.
-
-This module provides centralized search functionality across all record types,
 allowing for flexible and consistent searching throughout the application.
 
 This follows the MVC (Model-View-Controller) design pattern where:
