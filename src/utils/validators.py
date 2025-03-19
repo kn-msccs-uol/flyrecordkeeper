@@ -5,7 +5,7 @@ This module provides validation functions for record fields.
 """
 import re
 from datetime import datetime
-from typing import Any, Optional, Dict, List
+from typing import Any, Optional, Dict
 
 
 def validate_required_field(data: Dict[str, Any], field_name: str) -> Optional[str]:
