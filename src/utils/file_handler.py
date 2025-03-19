@@ -43,7 +43,7 @@ def load_records(filename: str) -> List[Dict[str, Any]]:
         return []
 
 
-def save_records(records: List[Dict[str, Any]], filename: str) -> bool:
+def save_records(clients: List[ClientRecord], airlines: List[AirlineRecord], flights: List[FlightRecord], filename: str) -> bool:
     """
     Save records to a JSON file.
     

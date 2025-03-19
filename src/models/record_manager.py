@@ -39,7 +39,9 @@ class RecordManager:
             filename: Path to the JSON file where records are stored
         """
         self.filename = filename
-        self.records = []
+        self.clients = []
+        self.airlines = []
+        self.flights = []
         self.load_from_file()
     
     def load_from_file(self) -> bool:
@@ -50,11 +52,30 @@ class RecordManager:
             True if successful, False otherwise
         """
         try:
-            self.records = load_records(self.filename)
-            return True
+            data = load_records(self.filename)
+            
+            return self.from_json(data)
         except Exception as e:
+            print('in load from file exception')
+            print(self.clients)
+            print(self.flights)
+            print(self.airlines)
             print(f"Error loading records: {e}")
             return False
+    
+    def from_json(self, data) -> bool:
+        self.clients = []
+        self.airlines = []
+        self.flights = []
+        
+        for rec in data["clients"]:
+            self.clients.append(ClientRecord.from_dict(rec))
+        for rec in data["airlines"]:
+            self.airlines.append(AirlineRecord.from_dict(rec))
+        for rec in data["flights"]:
+            self.flights.append(FlightRecord.from_dict(rec))
+
+        return True
     
     def save_to_file(self) -> bool:
         """
@@ -63,26 +84,42 @@ class RecordManager:
         Returns:
             True if successful, False otherwise
         """
-        return save_records(self.records, self.filename)
+        return save_records(self.clients, self.airlines, self.flights, self.filename)
     
-    def get_next_id(self) -> int:
+    def get_next_id(self, record_type: str) -> int:
         """
         Generate the next available record ID.
         
         Returns:
             Next available ID
         """
-        if not self.records:
-            return 1
+        if record_type == 'clients':
+            if not self.clients:
+                return 1
         
-        # Find the maximum ID currently in use
+            return self.get_max(self.clients) + 1
+        elif record_type == 'airlines':
+            if not self.airlines:
+                return 1
+        
+            return self.get_max(self.airlines) + 1
+        elif record_type == 'flights':
+            if not self.flights:
+                return 1
+        
+            return self.get_max(self.flights) + 1
+        
+        return 0
+
+    
+    def get_max(self, list):
         max_id = 0
-        for record in self.records:
+        for record in list:
             if "id" in record and record["id"] > max_id:
                 max_id = record["id"]
-        
-        return max_id + 1
-    
+
+        return max_id                
+
     def _get_validator_for_type(self, record_type: str):
         """
         Get the appropriate validator class for a record type.
@@ -184,7 +221,7 @@ class RecordManager:
         
         return self.create_record("flight", flight_data)
     
-    def get_record_by_id(self, record_id: int) -> Optional[Dict[str, Any]]:
+    def get_record_by_id(self, record_id: int, record_type: str) -> Optional[Dict[str, Any]]:
         """
         Retrieve a record by its ID.
         
@@ -194,10 +231,22 @@ class RecordManager:
         Returns:
             Record dictionary if found, None otherwise
         """
-        for record in self.records:
-            if record.get("id") == record_id:
-                return record
-        return None
+        rec = None
+
+        if record_type == "client":
+            rec = [item for item in self.clients if item['ID'] == record_id]
+        elif record_type == "airline":
+            rec = [item for item in self.airlines if item['ID'] == record_id]
+        elif record_type == "flight":
+            rec = [item for item in self.flights if item['ID'] == record_id]
+        else:
+            raise ValueError(f"Unknown record type: {record_type}")
+
+        if len(rec) > 0:
+            raise ValueError(f"Unknown records of type({record_type}) found for ID({record_id})")
+
+        return rec
+    
     
     def get_records_by_type(self, record_type: str) -> List[Dict[str, Any]]:
         """
@@ -209,7 +258,16 @@ class RecordManager:
         Returns:
             List of record dictionaries of the specified type
         """
-        return [record for record in self.records if record.get("type") == record_type]
+        #return [record for record in self.records if record.get("type") == record_type]
+        if record_type == "client":
+            return self.clients
+        elif record_type == "airline":
+            return self.airlines
+        elif record_type == "flight":
+            return self.flights
+        else:
+            raise ValueError(f"Unknown record type: {record_type}")
+
     
     def get_related_records(self, record_id: int, record_type: str) -> List[Dict[str, Any]]:
         """
@@ -226,15 +284,13 @@ class RecordManager:
         
         if record_type == "client":
             # Find flights that reference this client
-            related_records = [r for r in self.records 
-                            if r.get("type") == "flight" and 
-                                r.get("client_id") == record_id]
+            related_records = [r for r in self.flights 
+                            if r.get("client_id") == record_id]
         
         elif record_type == "airline":
             # Find flights that reference this airline
-            related_records = [r for r in self.records 
-                            if r.get("type") == "flight" and 
-                                r.get("airline_id") == record_id]
+            related_records = [r for r in self.flights 
+                            if r.get("airline_id") == record_id]
         
         return related_records
     
@@ -245,7 +301,12 @@ class RecordManager:
         Returns:
             List of all record dictionaries
         """
-        return self.records
+        all_recs = []
+        all_recs.append(self.clients)
+        all_recs.append(self.airlines)
+        all_recs.append(self.flights)
+
+        return all_recs
     
     def create_record(self, record_type: str, record_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -277,7 +338,7 @@ class RecordManager:
         # Validate based on record type
         errors = {}
         validator_class = self._get_validator_for_type(record_type)
-        errors = validator_class.validate(record_data, self.records if record_type == "flight" else None)
+        errors = validator_class.validate(record_data, self.flights if record_type == "flight" else None)
         
         # If there are validation errors, raise an exception
         if errors:
