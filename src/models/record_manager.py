@@ -20,6 +20,9 @@ from models.flight_record import FlightRecord
 # Import the file handler
 from utils.file_handler import load_records, save_records
 
+# Import the validator
+from utils.validators import get_validation_errors_summary
+
 
 class RecordManager:
     """
@@ -278,7 +281,7 @@ class RecordManager:
         
         # If there are validation errors, raise an exception
         if errors:
-            error_msg = "; ".join(f"{key}: {value}" for key, value in errors.items())
+            error_msg = get_validation_errors_summary(errors)
             raise ValueError(f"Validation errors: {error_msg}")
         
         # Create the record
@@ -331,7 +334,7 @@ class RecordManager:
         
         # If there are validation errors, raise an exception
         if errors:
-            error_msg = "; ".join(f"{key}: {value}" for key, value in errors.items())
+            error_msg = get_validation_errors_summary(errors)
             raise ValueError(f"Validation errors: {error_msg}")
         
         # Update the record in the records list
