@@ -108,7 +108,7 @@ class RecordManager:
             "phone_number": phone_number
         }
         
-        return self.create_record_with_validation("client", client_data)
+        return self.create_record("client", client_data)
     
     def create_airline(self, company_name: str) -> Dict[str, Any]:
         """
@@ -125,7 +125,7 @@ class RecordManager:
             "company_name": company_name
         }
         
-        return self.create_record_with_validation("airline", airline_data)
+        return self.create_record("airline", airline_data)
     
     def create_flight(self, client_id: int, airline_id: int,
                      date: datetime, start_city: str,
@@ -152,7 +152,7 @@ class RecordManager:
             "end_city": end_city
         }
         
-        return self.create_record_with_validation("flight", flight_data)
+        return self.create_record("flight", flight_data)
     
     def get_record_by_id(self, record_id: int) -> Optional[Dict[str, Any]]:
         """
@@ -217,7 +217,7 @@ class RecordManager:
         """
         return self.records
     
-    def create_record_with_validation(self, record_type: str, record_data: Dict[str, Any]) -> Dict[str, Any]:
+    def create_record(self, record_type: str, record_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a new record with validation and relationship checking.
         
@@ -268,7 +268,7 @@ class RecordManager:
         
         return record_data
     
-    def update_record_with_validation(self, record_id: int, updated_data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_record(self, record_id: int, updated_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Update a record with validation and relationship checking.
         
