@@ -198,7 +198,10 @@ class RecordManager:
         # Validate based on record type
         errors = {}
         validator_class = self._get_validator_for_type(record_type)
-        errors = validator_class.validate(record_data, self.records if record_type == "flight" else None)
+        if record_type == "flight":
+            errors = validator_class.validate(record_data, self.records)
+        else:
+            errors = validator_class.validate(record_data)
         
         # If there are validation errors, raise an exception
         if errors:
@@ -251,7 +254,10 @@ class RecordManager:
         # Validate based on record type
         errors = {}
         validator_class = self._get_validator_for_type(record_type)
-        errors = validator_class.validate(updated_record, self.records if record_type == "flight" else None)
+        if record_type == "flight":
+            errors = validator_class.validate(updated_data, self.records)
+        else:
+            errors = validator_class.validate(updated_data)
         
         # If there are validation errors, raise an exception
         if errors:
