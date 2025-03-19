@@ -2,16 +2,21 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
+from models import record_manager
+
 from views import airline_capture
 
 class AirlineView(tk.Frame):
     parent = None
+    rec_man = None
+    ctrl = None
 
     def __init__(self, parent):
         #super().__init__(self)
         super(AirlineView, self).__init__()
 
         self.parent = parent
+        self.rec_man = record_manager.RecordManager()
 
         self.create_toolbar()
         self.create_treeview()
@@ -42,19 +47,16 @@ class AirlineView(tk.Frame):
         treeview_frame.pack(fill=tk.BOTH, expand=True)
 
         # Create the treeview widget
-        treeview = ttk.Treeview(treeview_frame, columns=("ID", "CompanyName"), show="headings")
+        treeview = ttk.Treeview(treeview_frame, columns=("id", "company_name"), show="headings")
         
         # Define columns
-        treeview.heading("ID", text="ID")
-        treeview.heading("CompanyName", text="Company Name")
+        treeview.heading("id", text="ID")
+        treeview.heading("company_name", text="Company Name")
 
-        # Insert some dummy data
-        data = [
-            (1, "Etihad", 30),
-            (2, "Emirates", 25)
-        ]
+        data = self.rec_man.get_records_by_type('airline')
+        
         for item in data:
-            treeview.insert("", "end", values=item)
+            treeview.insert("", "end", values=(item.id, item.company_name))
 
         treeview.pack(expand=True, fill=tk.BOTH)       
 
