@@ -7,11 +7,13 @@ and deleting (CRUD) records in the system.
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
+# Import the record classes
+from models.client_record import ClientRecord
+from models.airline_record import AirlineRecord
+from models.flight_record import FlightRecord
+
 # Import the file handler
 from utils.file_handler import load_records, save_records
-
-# Import the validator
-from utils.validators import validate_client_record, validate_airline_record, validate_flight_record
 
 
 class RecordManager:
@@ -245,11 +247,11 @@ class RecordManager:
         # Validate based on record type
         errors = {}
         if record_type == "client":
-            errors = validate_client_record(record_data)
+            errors = ClientRecord.validate(record_data)
         elif record_type == "airline":
-            errors = validate_airline_record(record_data)
+            errors = AirlineRecord.validate(record_data)
         elif record_type == "flight":
-            errors = validate_flight_record(record_data, self.records)
+            errors = FlightRecord.validate(record_data, self.records)
         else:
             raise ValueError(f"Unknown record type: {record_type}")
         
@@ -304,11 +306,11 @@ class RecordManager:
         # Validate based on record type
         errors = {}
         if record_type == "client":
-            errors = validate_client_record(updated_record)
+            errors = ClientRecord.validate(updated_record)
         elif record_type == "airline":
-            errors = validate_airline_record(updated_record)
+            errors = AirlineRecord.validate(updated_record)
         elif record_type == "flight":
-            errors = validate_flight_record(updated_record, self.records)
+            errors = FlightRecord.validate(updated_record, self.records)
         
         # If there are validation errors, raise an exception
         if errors:
