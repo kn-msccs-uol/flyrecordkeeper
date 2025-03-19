@@ -122,25 +122,40 @@ class ClientRecord(BaseRecord):
             # Field-specific validation
             if field == "name":
                 error = validate_string(data[field], "Name", max_length=100)
+                if error:
+                    errors[field] = error
             elif field == "address_line1":
                 error = validate_string(data[field], "Address line 1", max_length=100)
+                if error:
+                    errors[field] = error
             elif field == "address_line2":
                 error = validate_string(data[field], "Address line 2", max_length=100)
+                if error:
+                    errors[field] = error
             elif field == "address_line3":
                 error = validate_string(data[field], "Address line 3", max_length=100)
+                if error:
+                    errors[field] = error
             elif field == "city":
                 error = validate_string(data[field], "City", max_length=50)
+                if error:
+                    errors[field] = error
             elif field == "state":
                 error = validate_string(data[field], "State", max_length=50)
+                if error:
+                    errors[field] = error
             elif field == "zip_code":
                 error = validate_string(data[field], "Zip code", max_length=20)
+                if error:
+                    errors[field] = error
             elif field == "country":
                 error = validate_string(data[field], "Country", max_length=100)
+                if error:
+                    errors[field] = error
             elif field == "phone_number":
                 error = validate_phone_number(data[field])
-            
-            if error:
-                errors[field] = error
+                if error:
+                    errors[field] = error
         
         return errors
 

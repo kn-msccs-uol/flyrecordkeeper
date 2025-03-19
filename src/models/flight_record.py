@@ -96,6 +96,7 @@ class FlightRecord(BaseRecord):
         
         # Required fields
         required_fields = ["client_id", "airline_id", "date", "start_city", "end_city"]
+
         for field in required_fields:
             error = validate_required_field(data, field)
             if error:
@@ -105,17 +106,24 @@ class FlightRecord(BaseRecord):
             # Field-specific validation
             if field == "client_id":
                 error = validate_integer(data[field], "Client ID", min_value=1)
+                if error:
+                    errors[field] = error
             elif field == "airline_id":
                 error = validate_integer(data[field], "Airline ID", min_value=1)
+                if error:
+                    errors[field] = error
             elif field == "date":
                 error = validate_date(data[field])
+                if error:
+                    errors[field] = error
             elif field == "start_city":
                 error = validate_string(data[field], "Start city", max_length=50)
+                if error:
+                    errors[field] = error
             elif field == "end_city":
                 error = validate_string(data[field], "End city", max_length=50)
-            
-            if error:
-                errors[field] = error
+                if error:
+                    errors[field] = error
         
         # Relationship validation if records are provided
         if all_records and "client_id" in data and "airline_id" in data:
