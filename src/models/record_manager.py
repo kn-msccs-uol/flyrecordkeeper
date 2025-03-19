@@ -75,6 +75,28 @@ class RecordManager:
         
         return max_id + 1
     
+    def _get_validator_for_type(self, record_type: str):
+        """
+        Get the appropriate validator class for a record type.
+        
+        Args:
+            record_type: Type of record ('client', 'airline', or 'flight')
+            
+        Returns:
+            Appropriate validator class
+            
+        Raises:
+            ValueError: If record type is unknown
+        """
+        if record_type == "client":
+            return ClientRecord
+        elif record_type == "airline":
+            return AirlineRecord
+        elif record_type == "flight":
+            return FlightRecord
+        else:
+            raise ValueError(f"Unknown record type: {record_type}")
+    
     def create_client(self, name: str, address_line1: str, address_line2: str, 
                      address_line3: str, city: str, state: str, zip_code: str,
                      country: str, phone_number: str) -> Dict[str, Any]:
@@ -246,14 +268,8 @@ class RecordManager:
         
         # Validate based on record type
         errors = {}
-        if record_type == "client":
-            errors = ClientRecord.validate(record_data)
-        elif record_type == "airline":
-            errors = AirlineRecord.validate(record_data)
-        elif record_type == "flight":
-            errors = FlightRecord.validate(record_data, self.records)
-        else:
-            raise ValueError(f"Unknown record type: {record_type}")
+        validator_class = self._get_validator_for_type(record_type)
+        errors = validator_class.validate(record_data, self.records if record_type == "flight" else None)
         
         # If there are validation errors, raise an exception
         if errors:
@@ -305,12 +321,8 @@ class RecordManager:
         
         # Validate based on record type
         errors = {}
-        if record_type == "client":
-            errors = ClientRecord.validate(updated_record)
-        elif record_type == "airline":
-            errors = AirlineRecord.validate(updated_record)
-        elif record_type == "flight":
-            errors = FlightRecord.validate(updated_record, self.records)
+        validator_class = self._get_validator_for_type(record_type)
+        errors = validator_class.validate(updated_record, self.records if record_type == "flight" else None)
         
         # If there are validation errors, raise an exception
         if errors:
