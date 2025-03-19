@@ -2,6 +2,11 @@
 Airline Record module for FlyRecordKeeper.
 
 This module defines the AirlineRecord class for managing airline information.
+
+This project uses a "Structured Dictionaries with OO Benefits" approach where:
+1. Records are stored as dictionaries for serialization and storage
+2. Classes provide structure, validation, and object-oriented functionality
+3. The system maintains the benefits of both approaches
 """
 from typing import Dict, Any
 from models.base_record import BaseRecord

@@ -3,6 +3,11 @@ Record Manager module for FlyRecordKeeper.
 
 This module provides functionality for creating, reading, updating,
 and deleting (CRUD) records in the system.
+
+This project uses a "Structured Dictionaries with OO Benefits" approach where:
+1. Records are stored as dictionaries for serialization and storage
+2. Classes provide structure, validation, and object-oriented functionality
+3. The system maintains the benefits of both approaches
 """
 from typing import List, Dict, Any, Optional
 from datetime import datetime
