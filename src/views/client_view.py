@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
+from models import record_manager
+
 from views import client_capture
 
 class ClientView(tk.Frame):
@@ -12,6 +14,7 @@ class ClientView(tk.Frame):
         super(ClientView, self).__init__()
 
         self.parent = parent
+        self.rec_man = record_manager.RecordManager()
 
         self.create_toolbar()
         self.create_treeview()
@@ -57,12 +60,10 @@ class ClientView(tk.Frame):
         treeview.heading("Country", text="Country")
         treeview.heading("PhoneNumber", text="PhoneNumber")
 
+        data = self.rec_man.get_records_by_type('client')
         # Insert some dummy data
-        data = [
-            (1, "Client", "Darryl Daniels", "30 Baker Street", "Rosebank", "", "Johannesburg", "Gauteng", "2196", "South Africa", "082 318 7744", 30)
-        ]
         for item in data:
-            treeview.insert("", "end", values=item)
+            treeview.insert("", "end", values=(item.id, item.name, item.address_line1, item.address_line2, item.address_line3, item.city, item.state, item.zip_code, item.country, item.phone_number))
 
         treeview.pack(expand=True, fill=tk.BOTH)       
 
