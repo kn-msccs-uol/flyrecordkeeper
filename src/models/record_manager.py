@@ -56,10 +56,6 @@ class RecordManager:
             
             return self.from_json(data)
         except Exception as e:
-            print('in load from file exception')
-            print(self.clients)
-            print(self.flights)
-            print(self.airlines)
             print(f"Error loading records: {e}")
             return False
     
