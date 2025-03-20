@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import ttk
 
 from views.airline_view import AirlineView
 from views.client_view import ClientView
@@ -9,8 +8,9 @@ from views.flight_view import FlightView
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Record Management System")
-        self.geometry("1024x768")
+        self.title("FlyRecordKeeper - Record Management System")
+        self.geometry("900x650")
+        self.minsize(800, 600)  # Set minimum window size for usability
 
         # Frames for layout
         self.menu_frame = tk.Frame(self, width=200, bg="#f0f0f0")
@@ -35,11 +35,11 @@ class App(tk.Tk):
         btn_clients = tk.Button(self.menu_frame, text="Manage Clients", width=20, command=lambda: self.load_content("Manage Clients"))
         btn_clients.pack(pady=2, fill=tk.X)
 
-        btn_flights = tk.Button(self.menu_frame, text="Manage Flights", width=20, command=lambda: self.load_content("Manage Flights"))
-        btn_flights.pack(pady=2)
-
         btn_airlines = tk.Button(self.menu_frame, text="Manage Airlines", width=20, command=lambda: self.load_content("Manage Airlines"))
         btn_airlines.pack(pady=2)
+
+        btn_flights = tk.Button(self.menu_frame, text="Manage Flights", width=20, command=lambda: self.load_content("Manage Flights"))
+        btn_flights.pack(pady=2)
 
     def load_content(self, content_type):
         """Load content into the right frame."""
@@ -55,10 +55,10 @@ class App(tk.Tk):
 
         if content_type == "Manage Clients":
             view = ClientView(self.right_frame)
-        elif content_type == "Manage Flights":
-            view = FlightView(self.right_frame)
         elif content_type == "Manage Airlines":
             view = AirlineView(self.right_frame)
+        elif content_type == "Manage Flights":
+            view = FlightView(self.right_frame)
         else:
             return
 
