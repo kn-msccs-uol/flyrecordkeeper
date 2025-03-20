@@ -11,11 +11,13 @@ This project uses a "Structured Dictionaries with OO Benefits" approach where:
 """
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+from operator import length_hint
 
 # Import the record classes
 from models.client_record import ClientRecord
 from models.airline_record import AirlineRecord
 from models.flight_record import FlightRecord
+from models.base_record import BaseRecord
 
 # Import the file handler
 from utils.file_handler import load_records, save_records
@@ -80,7 +82,26 @@ class RecordManager:
         Returns:
             True if successful, False otherwise
         """
-        return save_records(self.clients, self.airlines, self.flights, self.filename)
+        client_dict = []
+        flight_dict = []
+        airline_dict = []
+
+        for c in self.clients:
+            client_dict.append(c.to_dict())
+
+        for f in self.flights:
+            flight_dict.append(f.to_dict())
+
+        for a in self.airlines:
+            airline_dict.append(a.to_dict())
+
+        save_rec = {
+            "clients": client_dict,
+            "flights": flight_dict,
+            "airlines": airline_dict
+        }
+
+        return save_records(save_rec, self.filename)
     
     def get_next_id(self, record_type: str) -> int:
         """
@@ -89,32 +110,37 @@ class RecordManager:
         Returns:
             Next available ID
         """
-        if record_type == 'clients':
+        next_id: int = 0
+        if record_type == 'client':
             if not self.clients:
                 return 1
-        
-            return self.get_max(self.clients) + 1
-        elif record_type == 'airlines':
+            
+            next_id = self.get_max(self.clients)
+        elif record_type == 'airline':
             if not self.airlines:
                 return 1
         
-            return self.get_max(self.airlines) + 1
-        elif record_type == 'flights':
+            next_id = self.get_max(self.airlines)
+        elif record_type == 'flight':
             if not self.flights:
                 return 1
         
-            return self.get_max(self.flights) + 1
+            next_id = self.get_max(self.flights)
         
-        return 0
+        next_id += 1
+        return next_id
 
     
-    def get_max(self, list):
-        max_id = 0
-        for record in list:
-            if "id" in record and record["id"] > max_id:
-                max_id = record["id"]
+    def get_max(self, records) -> int:
+        """Return the max ID value from a list of records"""
+        max_id: int = 0
+        for record in records:
+            rec_id = int(record.id)
+            if rec_id > max_id:
+                max_id = rec_id
 
-        return max_id                
+        return max_id
+    
 
     def _get_validator_for_type(self, record_type: str):
         """
@@ -184,11 +210,9 @@ class RecordManager:
             Dictionary containing the created airline record
         """        
         # Create a new airline record
-        airline_data = {
-            "company_name": company_name
-        }
-        
-        return self.create_record("airline", airline_data)
+        new_id = self.get_next_id("airline")
+
+        return AirlineRecord(new_id, company_name)
     
     def create_flight(self, client_id: int, airline_id: int,
                      date: datetime, start_city: str,
@@ -217,7 +241,7 @@ class RecordManager:
         
         return self.create_record("flight", flight_data)
     
-    def get_record_by_id(self, record_id: int, record_type: str) -> Optional[Dict[str, Any]]:
+    def get_record_by_id(self, record_id: int, record_type: str) -> BaseRecord:
         """
         Retrieve a record by its ID.
         
@@ -227,21 +251,25 @@ class RecordManager:
         Returns:
             Record dictionary if found, None otherwise
         """
-        rec = None
+        recs= None
 
         if record_type == "client":
-            rec = [item for item in self.clients if item['ID'] == record_id]
+            recs = [item for item in self.clients if int(item.id) == record_id]
         elif record_type == "airline":
-            rec = [item for item in self.airlines if item['ID'] == record_id]
+            recs = [item for item in self.airlines if int(item.id) == record_id]
         elif record_type == "flight":
-            rec = [item for item in self.flights if item['ID'] == record_id]
+            recs = [item for item in self.flights if int(item.id) == record_id]
         else:
             raise ValueError(f"Unknown record type: {record_type}")
 
-        if len(rec) > 0:
-            raise ValueError(f"Unknown records of type({record_type}) found for ID({record_id})")
+        matches = length_hint(recs)
 
-        return rec
+        if matches == 0:
+            raise ValueError(f"Record of type ({record_type}) not found for ID({record_id})")
+        if matches > 1:
+            raise ValueError(f"Multiple records of type ({record_type}) found for ID({record_id})")
+
+        return recs[0]
     
     
     def get_records_by_type(self, record_type: str) -> List[Dict[str, Any]]:
@@ -281,12 +309,12 @@ class RecordManager:
         if record_type == "client":
             # Find flights that reference this client
             related_records = [r for r in self.flights 
-                            if r.get("client_id") == record_id]
+                            if r.client_id == record_id]
         
         elif record_type == "airline":
             # Find flights that reference this airline
             related_records = [r for r in self.flights 
-                            if r.get("airline_id") == record_id]
+                            if r.airline_id == record_id]
         
         return related_records
     
@@ -408,7 +436,7 @@ class RecordManager:
         
         return updated_record
     
-    def check_can_delete(self, record_id: int) -> tuple[bool, str]:
+    def check_can_delete(self, record_id: int, record_type: str) -> tuple[bool, str]:
         """
         Check if a record can be safely deleted without breaking relationships.
         
@@ -419,20 +447,18 @@ class RecordManager:
             Tuple of (can_delete, reason) where reason explains why deletion is not allowed
         """
         # Find the record
-        record = self.get_record_by_id(record_id)
+        record = self.get_record_by_id(record_id, record_type)
         if not record:
-            return False, f"Record with ID {record_id} not found"
+            return False, f"Record of type {record_type} with ID {record_id} not found"
         
-        record_type = record.get("type")
-        
-        if record_type in ["client", "airline"]:
+        if record.type in ["client", "airline"]:
             related_records = self.get_related_records(record_id, record_type)
             if related_records:
                 return False, f"Cannot delete {record_type} with ID {record_id} because it is referenced by {len(related_records)} flight records"
         
         return True, ""
     
-    def delete_record(self, record_id: int) -> bool:
+    def delete_record(self, record_id: int, record_type: str) -> bool:
         """
         Delete a record by ID.
         
@@ -445,15 +471,24 @@ class RecordManager:
         Raises:
             ValueError: If the record is cannot be deleted
         """
-        can_delete, reason = self.check_can_delete(record_id)
+        can_delete, reason = self.check_can_delete(record_id, record_type)
 
         if not can_delete:
             raise ValueError(reason)
 
         # Find the record index
         record_index = None
-        for i, record in enumerate(self.records):
-            if record.get("id") == record_id:
+        data_list = None
+        
+        if record_type == "client":
+            data_list = self.clients
+        elif record_type == "airline":
+            data_list = self.airlines
+        elif record_type == "flight":
+            data_list = self.flights
+                
+        for i, record in enumerate(data_list):
+            if record.id == record_id:
                 record_index = i
                 break
         
@@ -461,7 +496,7 @@ class RecordManager:
             return False
         
         # Delete the record
-        del self.records[record_index]
+        del data_list[record_index]
         
         # Save to file
         self.save_to_file()
