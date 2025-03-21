@@ -1,5 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from PIL import Image, ImageTk
+import os
+import sys
 
 from views.airline_view import AirlineView
 from views.client_view import ClientView
@@ -15,6 +18,23 @@ class App(tk.Tk):
         self.title("FlyRecordKeeper - Record Management System")
         self.geometry("900x650")
         self.minsize(800, 600)  # Set minimum window size for usability
+
+        # Set application icon
+        try:
+            icon_path = self.get_asset_path('images/flyrecordkeeper_logo_icon.png')
+            icon_img = Image.open(icon_path)
+            
+            # Resize to standard icon size if needed
+            icon_img = icon_img.resize((64, 64), Image.LANCZOS)
+            
+            # Convert to PhotoImage
+            icon_photo = ImageTk.PhotoImage(icon_img)
+            
+            # Set as window icon (works across platforms)
+            self.iconphoto(True, icon_photo)
+            
+        except Exception as e:
+            print(f"Error setting application icon: {e}")
         
         # Apply styling for a more modern appearance
         self.setup_styles()
@@ -35,6 +55,23 @@ class App(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         
         self.mainloop()
+
+    def get_asset_path(self, relative_path):
+        """Return a path to an asset file that works regardless of how the app is executed."""
+        # Get the directory of the currently executing script
+        if getattr(sys, 'frozen', False):
+            # If the application is run as a PyInstaller bundle
+            base_path = sys._MEIPASS
+        else:
+            # If the application is run from Python interpreter
+            # Get path to views directory
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            # Go up to src directory
+            src_dir = os.path.dirname(current_dir)
+            # Go up to project root
+            base_path = os.path.dirname(src_dir)
+            
+        return os.path.join(base_path, 'assets', relative_path)
     
     def setup_styles(self):
         """Configure application styling using ttk."""
@@ -61,8 +98,32 @@ class App(tk.Tk):
         self.menu_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 5))
         
         # App title/logo
-        logo_label = ttk.Label(self.menu_frame, text="FlyRecordKeeper", style='Header.TLabel')
-        logo_label.pack(pady=(0, 15), anchor='center')
+        try:
+            # Load and resize the logo image
+            logo_path = self.get_asset_path('images/flyrecordkeeper_logo.png')
+            original_logo = Image.open(logo_path)
+            
+            # Calculate appropriate size while maintaining aspect ratio
+            # Assuming sidebar width of ~180px, so logo should be ~160px wide
+            width, height = original_logo.size
+            new_width = 160
+            new_height = int(height * (new_width / width))
+            
+            # Resize image with high quality
+            resized_logo = original_logo.resize((new_width, new_height), Image.LANCZOS)
+            
+            # Convert to PhotoImage for Tkinter
+            self.logo_image = ImageTk.PhotoImage(resized_logo)
+            
+            # Display the logo
+            logo_label = ttk.Label(self.menu_frame, image=self.logo_image)
+            logo_label.pack(pady=(10, 15), anchor='center')
+            
+        except Exception as e:
+            # Fallback to text if image loading fails
+            print(f"Error loading logo: {e}")
+            logo_label = ttk.Label(self.menu_frame, text="FlyRecordKeeper", style='Header.TLabel')
+            logo_label.pack(pady=(0, 15), anchor='center')
         
         # Navigation section
         nav_label = ttk.Label(self.menu_frame, text="Navigation")
