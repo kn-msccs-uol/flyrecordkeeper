@@ -97,8 +97,8 @@ class RecordManager:
 
         save_rec = {
             "clients": client_dict,
-            "flights": flight_dict,
-            "airlines": airline_dict
+            "airlines": airline_dict,
+            "flights": flight_dict
         }
 
         return save_records(save_rec, self.filename)
