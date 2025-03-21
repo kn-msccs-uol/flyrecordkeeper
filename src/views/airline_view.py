@@ -132,7 +132,7 @@ class AirlineView(ttk.Frame):
 
     def open_child_window(self, rec, action):
         """Open a modal child window with 'OK' and 'Cancel' buttons."""
-        result, output = airline_capture.AirlineCapture(rec).show()
+        result, output = airline_capture.AirlineCapture(rec, action).show()
 
         if (result):
             if (action == "Add"):
