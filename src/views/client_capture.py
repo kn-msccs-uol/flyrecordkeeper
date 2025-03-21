@@ -171,7 +171,7 @@ class ClientCapture(tk.Toplevel):
         # Validate required fields
         field_validations = {
             'name': (validate_string, [name, "Name", 2, 100]),
-            'address_line1': (validate_string, [address_line1, "Address Line 1", 1, 100]),
+            'address_line1': (validate_string, [address_line1, "Address Line 1", 2, 100]),
             'city': (validate_string, [city, "City", 2, 85]),
             'state': (validate_string, [state, "State", 2, 85]),
             'zip_code': (validate_string, [zip_code, "Zip Code", 2, 10]),

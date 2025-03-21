@@ -110,8 +110,8 @@ class ClientRecord(BaseRecord):
         errors = super().validate(data)
         
         # Required fields
-        required_fields = ["name", "address_line1", "address_line2", "address_line3", 
-                        "city", "state", "zip_code", "country", "phone_number"]
+        required_fields = ["name", "address_line1", "city", "state", "zip_code",
+                           "country", "phone_number"]
         
         for field in required_fields:
             error = validate_required_field(data, field)
@@ -137,19 +137,19 @@ class ClientRecord(BaseRecord):
                 if error:
                     errors[field] = error
             elif field == "city":
-                error = validate_string(data[field], "City", max_length=50)
+                error = validate_string(data[field], "City", max_length=85)
                 if error:
                     errors[field] = error
             elif field == "state":
-                error = validate_string(data[field], "State", max_length=50)
+                error = validate_string(data[field], "State", max_length=85)
                 if error:
                     errors[field] = error
             elif field == "zip_code":
-                error = validate_string(data[field], "Zip code", max_length=20)
+                error = validate_string(data[field], "Zip code", max_length=10)
                 if error:
                     errors[field] = error
             elif field == "country":
-                error = validate_string(data[field], "Country", max_length=100)
+                error = validate_string(data[field], "Country", max_length=75)
                 if error:
                     errors[field] = error
             elif field == "phone_number":
