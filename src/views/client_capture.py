@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from utils.validators import validate_required_field, validate_string, validate_phone_number
+from utils.validators import validate_string, validate_phone_number
 
 
 class ClientCapture(tk.Toplevel):
