@@ -7,7 +7,7 @@ class AirlineCapture(tk.Toplevel):
         super().__init__()
         
         # Set window properties
-        self.title(f"{action} Airline Company Name")
+        self.title(f"{action} Airline Record")
         self.geometry("420x200")
         self.resizable(False, False)
         
