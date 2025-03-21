@@ -33,14 +33,14 @@ class AirlineView(tk.Frame):
         self.add_button = tk.Button(toolbar, text="Add", width=10, command=self.add_item)
         self.add_button.pack(side=tk.LEFT, padx=5)
 
-        self.edit_button = tk.Button(toolbar, text="Edit", width=10, command=self.edit_item, state="disabled")
+        self.edit_button = tk.Button(toolbar, text="Edit/Update", width=10, command=self.edit_item, state="disabled")
         self.edit_button.pack(side=tk.LEFT, padx=5)
 
         self.delete_button = tk.Button(toolbar, text="Delete", width=10, command=self.delete_item, state="disabled")
         self.delete_button.pack(side=tk.LEFT, padx=5)
 
         self.search_button = tk.Button(toolbar, text="Search", width=10, command=self.search_item)
-        self.search_button.pack(side=tk.LEFT, padx=5)
+        self.search_button.pack(side=tk.RIGHT, padx=5)
 
     def create_treeview(self):
         """Create the treeview widget to display data."""
@@ -102,19 +102,25 @@ class AirlineView(tk.Frame):
     def delete_item(self):
         """Handle adding a new item by opening a child window."""
         if (self.selected_item is None):
+            messagebox.showinfo("Info", "Please select an airline to delete")
             return
         
-        if (messagebox.askquestion("Delete", "Are You Sure?") == 'yes'):
-            item_data = self.treeview.item(self.selected_item)
+        item_data = self.treeview.item(self.selected_item)
+        row_id = int(item_data['values'][0])
+        record_name = str(item_data['values'][1])
 
-            if not item_data or len(item_data['values']) == 0:
-                return
 
-            row_id = int(item_data['values'][0])
-            if (self.rec_man.delete_record(row_id, "airline")):
-                messagebox.showinfo("Delete Successful", "The record has been deleted successfully!")
-                self.treeview.delete(self.selected_item)
+        confirm = messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete airline '{record_name}'?")
+        if confirm:
+            try:
+                if not item_data or len(item_data['values']) == 0:
+                    return
 
+                if (self.rec_man.delete_record(row_id, "airline")):
+                    self.treeview.delete(self.selected_item)
+                    messagebox.showinfo("Delete Successful", "Airline deleted successfully!")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
 
     def search_item(self):
         """Handle searching for an item by opening a child window."""
@@ -135,5 +141,3 @@ class AirlineView(tk.Frame):
                         self.treeview.item(self.selected_item, text="", values=(output.id, output.company_name))
 
         self.rec_man.save_to_file()
-
-
