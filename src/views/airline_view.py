@@ -6,7 +6,7 @@ from models import record_manager
 
 from views import airline_capture
 
-class AirlineView(tk.Frame):
+class AirlineView(ttk.Frame):
     parent = None
     rec_man = None
     ctrl = None
@@ -24,27 +24,31 @@ class AirlineView(tk.Frame):
 
     def create_toolbar(self):
         """Create the toolbar with Add and Search buttons."""
-        toolbar = tk.Frame(self.parent)
+        toolbar = ttk.Frame(self.parent)
         toolbar.pack(fill=tk.X)
 
-        label = tk.Label(toolbar, text="Manage Airlines")
-        label.pack(pady=(5,10))
+        label = ttk.Label(toolbar, text="Airline Company Records", font=('Segoe UI', 11, 'bold'))
+        label.pack(pady=5)
+
+        # Add a separator
+        separator = ttk.Separator(toolbar, orient='horizontal')
+        separator.pack(fill='x', pady=(10,0))
 
         self.add_button = tk.Button(toolbar, text="Add", width=10, command=self.add_item)
-        self.add_button.pack(side=tk.LEFT, padx=5)
+        self.add_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.edit_button = tk.Button(toolbar, text="Edit/Update", width=10, command=self.edit_item, state="disabled")
-        self.edit_button.pack(side=tk.LEFT, padx=5)
+        self.edit_button = tk.Button(toolbar, text="Edit/Update", width=15, command=self.edit_item, state="disabled")
+        self.edit_button.pack(side=tk.LEFT, padx=15, pady=5)
 
         self.delete_button = tk.Button(toolbar, text="Delete", width=10, command=self.delete_item, state="disabled")
-        self.delete_button.pack(side=tk.LEFT, padx=5)
+        self.delete_button.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.search_button = tk.Button(toolbar, text="Search", width=10, command=self.search_item)
-        self.search_button.pack(side=tk.RIGHT, padx=5)
+        self.search_button.pack(side=tk.RIGHT, padx=5, pady=5)
 
     def create_treeview(self):
         """Create the treeview widget to display data."""
-        treeview_frame = tk.Frame(self.parent)
+        treeview_frame = ttk.Frame(self.parent)
         treeview_frame.pack(fill=tk.BOTH, expand=True)
 
         # Create the treeview widget
