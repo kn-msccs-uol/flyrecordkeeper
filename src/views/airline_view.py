@@ -90,7 +90,7 @@ class AirlineView(ttk.Frame):
         self.open_child_window(rec, "Add")
 
     def edit_item(self):
-        """Handle adding a new item by opening a child window."""
+        """Handle editing an item by opening a child window."""
         if (self.selected_item is None):
             return
         
@@ -104,7 +104,7 @@ class AirlineView(ttk.Frame):
         self.open_child_window(rec, "Edit")
 
     def delete_item(self):
-        """Handle adding a new item by opening a child window."""
+        """Handle deleting an item through a confirmation box."""
         if (self.selected_item is None):
             messagebox.showinfo("Info", "Please select an airline to delete")
             return
