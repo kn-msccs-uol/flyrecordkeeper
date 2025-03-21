@@ -125,13 +125,17 @@ class App(tk.Tk):
             logo_label = ttk.Label(self.menu_frame, text="FlyRecordKeeper", style='Header.TLabel')
             logo_label.pack(pady=(0, 15), anchor='center')
         
+        # Add a separator
+        separator1 = ttk.Separator(self.menu_frame, orient='horizontal')
+        separator1.pack(fill='x', pady=5)
+        
         # Navigation section
         nav_label = ttk.Label(self.menu_frame, text="Navigation")
-        nav_label.pack(anchor='w', pady=(0, 5))
+        nav_label.pack(anchor='w', pady=5)
         
         # Add a separator
-        separator = ttk.Separator(self.menu_frame, orient='horizontal')
-        separator.pack(fill='x', pady=5)
+        separator2 = ttk.Separator(self.menu_frame, orient='horizontal')
+        separator2.pack(fill='x', pady=5)
         
         # Create navigation buttons
         self.create_menu()
@@ -151,8 +155,8 @@ class App(tk.Tk):
         exit_button.pack(pady=10, fill=tk.X)
         
         # Add vertical separator
-        separator = ttk.Separator(self.main_frame, orient='vertical')
-        separator.pack(side=tk.LEFT, fill=tk.Y, padx=2)
+        separator3 = ttk.Separator(self.main_frame, orient='vertical')
+        separator3.pack(side=tk.LEFT, fill=tk.Y, padx=2)
         
         # Content frame for views
         self.content_frame = ttk.Frame(self.main_frame, padding=5)
