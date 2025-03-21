@@ -164,40 +164,41 @@ class RecordManager:
         else:
             raise ValueError(f"Unknown record type: {record_type}")
     
-    def create_client(self, name: str, address_line1: str, address_line2: str, 
-                     address_line3: str, city: str, state: str, zip_code: str,
-                     country: str, phone_number: str) -> Dict[str, Any]:
+    def create_client(self, name: str = "", address_line1: str = "", address_line2: str = "",
+                      address_line3: str = "", city: str = "", state: str = "", zip_code: str = "",
+                      country: str = "", phone_number: str = "") -> ClientRecord:
         """
         Create a new client record.
         
         Args:
-            name: Client's name
-            address_line1: First line of client's address
-            address_line2: Second line of client's address
-            address_line3: Third line of client's address
-            city: Client's city
-            state: Client's state
-            zip_code: Client's postal code
-            country: Client's country
-            phone_number: Client's phone number
+            name: Client's name (default: empty string)
+            address_line1: First line of client's address (default: empty string)
+            address_line2: Second line of client's address (default: empty string)
+            address_line3: Third line of client's address (default: empty string)
+            city: Client's city (default: empty string)
+            state: Client's state (default: empty string)
+            zip_code: Client's postal code (default: empty string)
+            country: Client's country (default: empty string)
+            phone_number: Client's phone number (default: empty string)
             
         Returns:
             Dictionary containing the created client record
         """
-        # Create a new client record with all the fields
-        client_data = {
-            "name": name,
-            "address_line1": address_line1,
-            "address_line2": address_line2,
-            "address_line3": address_line3,
-            "city": city,
-            "state": state,
-            "zip_code": zip_code,
-            "country": country,
-            "phone_number": phone_number
-        }
-        
-        return self.create_record("client", client_data)
+        # Create a new client record
+        new_id = self.get_next_id("client")
+
+        return ClientRecord(
+            record_id=new_id,
+            name=name,
+            address_line1=address_line1,
+            address_line2=address_line2,
+            address_line3=address_line3,
+            city=city,
+            state=state,
+            zip_code=zip_code,
+            country=country,
+            phone_number=phone_number
+        )
     
     def create_airline(self, company_name: str) -> Dict[str, Any]:
         """
