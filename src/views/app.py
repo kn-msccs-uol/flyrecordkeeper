@@ -169,11 +169,11 @@ class App(tk.Tk):
                 self.highlight_active_nav("Manage Clients")
                 
             elif content_type == "Manage Airlines":
-                view = FlightView(self.content_frame)
+                view = AirlineView(self.content_frame)
                 self.highlight_active_nav("Manage Airlines")
                 
             elif content_type == "Manage Flights":
-                view = AirlineView(self.content_frame)
+                view = FlightView(self.content_frame)
                 self.highlight_active_nav("Manage Flights")
                 
             else:
