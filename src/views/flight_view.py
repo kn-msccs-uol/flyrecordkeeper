@@ -26,26 +26,32 @@ class FlightView(tk.Frame):
         toolbar = ttk.Frame(self.parent)
         toolbar.pack(fill=tk.X)
 
-        label = ttk.Label(toolbar, text="Flight Records", font=('Segoe UI', 11, 'bold'))
+        label = ttk.Label(toolbar, text="Flight Records", font=(14,'bold'))
         label.pack(pady=5)
 
         # Add a separator
         separator = ttk.Separator(toolbar, orient='horizontal')
         separator.pack(fill='x', pady=(10,0))
 
-        self.add_button = tk.Button(toolbar, text="Add", width=10, command=self.add_item)
+        self.add_button = tk.Button(toolbar, text="Add", font=(12), width=10, command=self.add_item)
         self.add_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.edit_button = tk.Button(toolbar, text="Edit/Update", width=15, command=self.edit_item, state="disabled")
+        self.edit_button = tk.Button(toolbar, text="Edit/Update", font=(12), width=15, command=self.edit_item, state="disabled")
         self.edit_button.pack(side=tk.LEFT, padx=15, pady=5)
 
-        self.delete_button = tk.Button(toolbar, text="Delete", width=10, command=self.delete_item, state="disabled")
+        self.delete_button = tk.Button(toolbar, text="Delete", font=(12), width=10, command=self.delete_item, state="disabled")
         self.delete_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.search_button = tk.Button(toolbar, text="Search", width=10, command=self.search_item)
+        self.search_button = tk.Button(toolbar, text="Search", font=(12), width=10, command=self.search_item)
         self.search_button.pack(side=tk.LEFT, padx=5, pady=5)
 
     def create_treeview(self):
+        # Define a style for the Treeview
+        style = ttk.Style()
+        style.configure('Treeview', font=(12))
+        # Configure the font for Treeview items
+        style.configure('Treeview.Heading', font=(12, 'bold')
+                        
         """Create the treeview widget to display data."""
         treeview_frame = tk.Frame(self.parent)
         treeview_frame.pack(fill=tk.BOTH, expand=True)
