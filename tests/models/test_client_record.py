@@ -5,11 +5,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 import unittest
 from models.client_record import ClientRecord
-from unittest.mock import patch
 
 class TestClientRecord(unittest.TestCase):
 
     def setUp(self):
+        # Sample valid client data
         self.valid_data = {
             "id": 1,
             "type": "client",
@@ -23,37 +23,41 @@ class TestClientRecord(unittest.TestCase):
             "country": "UK",
             "phone_number": "+44 1234 567890"
         }
+        # Create a ClientRecord object using the valid data
         self.client = ClientRecord.from_dict(self.valid_data)
 
     def test_initialization(self):
+        # Check if values are stored correctly in the object
         self.assertEqual(self.client.id, 1)
         self.assertEqual(self.client.name, "John Doe")
         self.assertEqual(self.client.city, "London")
         self.assertEqual(self.client.type, "client")
 
     def test_to_dict(self):
+        # Check if converting the object to dictionary gives the same data
         self.assertEqual(self.client.to_dict(), self.valid_data)
 
     def test_from_dict(self):
+        # Check if we can create a ClientRecord from a dictionary
         client = ClientRecord.from_dict(self.valid_data)
         self.assertIsInstance(client, ClientRecord)
-        self.assertEqual(client.name, self.valid_data["name"])
+        self.assertEqual(client.name, "John Doe")
 
-    @patch("utils.validators.validate_required_field", return_value=None)
-    @patch("utils.validators.validate_string", return_value=None)
-    @patch("utils.validators.validate_phone_number", return_value=None)
-    def test_validate_valid_data(self, mock_phone, mock_string, mock_required):
+    def test_validate_valid_data(self):
+        # This will call the real validation function and check for no errors
         errors = ClientRecord.validate(self.valid_data)
-        self.assertEqual(errors, {})
+        self.assertEqual(errors, {})  # Expect no errors
 
-    @patch("utils.validators.validate_required_field", side_effect=lambda d, k: "Required" if k == "name" else None)
-    def test_validate_missing_name(self, mock_required):
-        data = self.valid_data.copy()
-        del data["name"]
-        errors = ClientRecord.validate(data)
+    def test_validate_missing_name(self):
+        # Create a copy of valid data with name removed
+        invalid_data = self.valid_data.copy()
+        del invalid_data["name"]
+
+        # Run validation
+        errors = ClientRecord.validate(invalid_data)
+
+        # Check that "name" is in the error messages
         self.assertIn("name", errors)
-        self.assertEqual(errors["name"], "Required")
-
 
 if __name__ == "__main__":
     unittest.main()
