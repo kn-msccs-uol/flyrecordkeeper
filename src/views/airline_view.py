@@ -50,21 +50,84 @@ class AirlineView(ttk.Frame):
         treeview_frame.pack(fill=tk.BOTH, expand=True)
 
         # Create the treeview widget
-        self.treeview = ttk.Treeview(treeview_frame, columns=("id", "company_name"), show="headings")
-        
-        # Define columns
-        self.treeview.heading("id", text="ID")
-        self.treeview.heading("company_name", text="Company Name")
+        self.treeview = ttk.Treeview(
+             treeview_frame,
+             columns=("id",
+                      "company_name"),
+                      show="headings")
 
+        # Define column headers and base widths
+        self.column_base_widths = {
+            "id": 70,                # Fixed width for ID
+            "company_name": 150,     # Reasonable space for company names
+        }
+
+        # Configure all columns with headings and widths
+        for col, width in self.column_base_widths.items():
+            display_name = col.replace("_", " ").title()
+            if col == "id":
+                display_name = "ID"
+
+            # All columns should respect their base width initially
+            self.treeview.heading(col, text=display_name)
+            self.treeview.column(col, width=width, minwidth=width//2, stretch=True)
+
+        # Load data
         data = self.rec_man.get_records_by_type('airline')
-        
         for item in data:
             self.treeview.insert("", "end", values=(item.id, item.company_name))
 
+        # Pack the treeview
         self.treeview.pack(expand=True, fill=tk.BOTH)
+        self.treeview.bind('<<TreeviewSelect>>', self.select_item)
 
-        self.treeview.bind('<ButtonRelease-1>', self.select_item)
+        # Bind to Configure event for handling resize
+        self.treeview.bind("<Configure>", self.on_treeview_configure)
 
+        # Initial update after UI is stable
+        self.treeview.after(750, self.adjust_columns_and_scrollbar)
+
+    def on_treeview_configure(self, event=None):
+        """Handle treeview configuration changes (like resize or moving to another screen)"""
+        # Use after to avoid multiple rapid updates
+        if hasattr(self, '_configure_after_id'):
+            self.treeview.after_cancel(self._configure_after_id)
+        self._configure_after_id = self.treeview.after(100, self.adjust_columns_and_scrollbar)
+
+    def adjust_columns_and_scrollbar(self):
+        """Adjust column widths proportionally and update scrollbar visibility"""
+        # Safety check for destroyed widgets
+        try:
+            if not self.treeview.winfo_exists():
+                return
+        except:
+            return  # Widget may have been destroyed
+        
+        # Get current treeview width
+        treeview_width = self.treeview.winfo_width()
+        if treeview_width <= 1:  # If treeview not yet rendered
+            self.treeview.after(100, self.adjust_columns_and_scrollbar)
+            return
+
+        # fixed: ID; proportionally variable: other columns)
+        id_width = self.column_base_widths["id"]
+        available_width = treeview_width - id_width
+
+        # Get all columns except ID
+        flex_columns = [col for col in self.treeview["columns"] if col != "id"]
+        flex_total_base_width = sum(self.column_base_widths[col] for col in flex_columns)
+
+        # Set ID column fixed
+        self.treeview.column("id", width=id_width, stretch=False)
+
+        # Distribute remaining width proportionally
+        for col in flex_columns:
+            proportion = self.column_base_widths[col] / flex_total_base_width
+            new_width = max(self.column_base_widths[col], int(available_width * proportion))
+            self.treeview.column(col, width=new_width, stretch=True)
+        
+        # Update UI
+        self.treeview.update_idletasks()
 
     def select_item(self, a):
         """Selection change event on the treeview"""
