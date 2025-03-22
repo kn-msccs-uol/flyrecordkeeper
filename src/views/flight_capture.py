@@ -63,7 +63,7 @@ class FlightCapture(tk.Toplevel):
         header_label = ttk.Label(
             header_frame,
             text=f"{self.action} Flight", 
-            font=('Segoe UI', 11, 'bold')
+            font=(12)
         )
         header_label.pack(anchor=tk.W)
         
