@@ -232,15 +232,10 @@ class RecordManager:
             Dictionary containing the created flight record
         """
         # Create a new flight record
-        flight_data = {
-            "client_id": client_id,
-            "airline_id": airline_id,
-            "date": date,
-            "start_city": start_city,
-            "end_city": end_city
-        }
-        
-        return self.create_record("flight", flight_data)
+        new_id = self.get_next_id("flight")
+
+        return FlightRecord(new_id, client_id, airline_id, date, start_city, end_city)
+    
     
     def get_record_by_id(self, record_id: int, record_type: str) -> BaseRecord:
         """
@@ -255,11 +250,11 @@ class RecordManager:
         recs= None
 
         if record_type == "client":
-            recs = [item for item in self.clients if int(item.id) == record_id]
+            recs = [item for item in self.clients if int(item.id) == int(record_id)]
         elif record_type == "airline":
-            recs = [item for item in self.airlines if int(item.id) == record_id]
+            recs = [item for item in self.airlines if int(item.id) == int(record_id)]
         elif record_type == "flight":
-            recs = [item for item in self.flights if int(item.id) == record_id]
+            recs = [item for item in self.flights if int(item.id) == int(record_id)]
         else:
             raise ValueError(f"Unknown record type: {record_type}")
 

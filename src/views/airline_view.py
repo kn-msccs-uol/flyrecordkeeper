@@ -9,11 +9,9 @@ from views import airline_capture
 class AirlineView(ttk.Frame):
     parent = None
     rec_man = None
-    ctrl = None
     selected_item = None
 
     def __init__(self, parent):
-        #super().__init__(self)
         super(AirlineView, self).__init__()
 
         self.parent = parent
@@ -114,8 +112,7 @@ class AirlineView(ttk.Frame):
         record_name = str(item_data['values'][1])
 
 
-        confirm = messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete airline '{record_name}'?")
-        if confirm:
+        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete airline '{record_name}'?"):
             try:
                 if not item_data or len(item_data['values']) == 0:
                     return

@@ -49,7 +49,7 @@ class AirlineCapture(tk.Toplevel):
         header_frame.pack(fill=tk.X)
         
         header_label = ttk.Label(
-            header_frame, 
+            header_frame,
             text=f"{self.action} Airline", 
             font=('Segoe UI', 11, 'bold')
         )

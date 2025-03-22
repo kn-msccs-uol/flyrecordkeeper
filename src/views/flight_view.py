@@ -2,15 +2,17 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
+from datetime import date
 from models import record_manager
 
 from views import flight_capture
 
 class FlightView(tk.Frame):
     parent = None
+    rec_man = None
+    selected_item = None
 
     def __init__(self, parent):
-        #super().__init__(self)
         super(FlightView, self).__init__()
 
         self.parent = parent
@@ -21,23 +23,27 @@ class FlightView(tk.Frame):
 
     def create_toolbar(self):
         """Create the toolbar with Add and Search buttons."""
-        toolbar = tk.Frame(self.parent)
+        toolbar = ttk.Frame(self.parent)
         toolbar.pack(fill=tk.X)
 
-        label = tk.Label(toolbar, text="Manage Flights")
-        label.pack(pady=(5,10))
+        label = ttk.Label(toolbar, text="Flight Records", font=('Segoe UI', 11, 'bold'))
+        label.pack(pady=5)
 
-        add_button = tk.Button(toolbar, text="Add", width=10, command=self.add_item)
-        add_button.pack(side=tk.LEFT, padx=5)
+        # Add a separator
+        separator = ttk.Separator(toolbar, orient='horizontal')
+        separator.pack(fill='x', pady=(10,0))
 
-        add_button = tk.Button(toolbar, text="Edit", width=10, command=self.edit_item)
-        add_button.pack(side=tk.LEFT, padx=5)
+        self.add_button = tk.Button(toolbar, text="Add", width=10, command=self.add_item)
+        self.add_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        add_button = tk.Button(toolbar, text="Delete", width=10, command=self.delete_item)
-        add_button.pack(side=tk.LEFT, padx=5)
+        self.edit_button = tk.Button(toolbar, text="Edit/Update", width=15, command=self.edit_item, state="disabled")
+        self.edit_button.pack(side=tk.LEFT, padx=15, pady=5)
 
-        search_button = tk.Button(toolbar, text="Search", width=10, command=self.search_item)
-        search_button.pack(side=tk.LEFT, padx=5)
+        self.delete_button = tk.Button(toolbar, text="Delete", width=10, command=self.delete_item, state="disabled")
+        self.delete_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.search_button = tk.Button(toolbar, text="Search", width=10, command=self.search_item)
+        self.search_button.pack(side=tk.LEFT, padx=5, pady=5)
 
     def create_treeview(self):
         """Create the treeview widget to display data."""
@@ -45,37 +51,119 @@ class FlightView(tk.Frame):
         treeview_frame.pack(fill=tk.BOTH, expand=True)
 
         # Create the treeview widget
-        treeview = ttk.Treeview(treeview_frame, columns=("Client", "Airline", "DateTime", "StartCity", "EndCity"), show="headings")
+        self.treeview = ttk.Treeview(treeview_frame, columns=("ID", "Client", "Airline", "DateTime", "StartCity", "EndCity"), show="headings")
         
         # Define columns
-        treeview.heading("Client", text="ID")
-        treeview.heading("Airline", text="Airline")
-        treeview.heading("DateTime", text="Date/Time")
-        treeview.heading("StartCity", text="Start City")
-        treeview.heading("EndCity", text="End City")
+        self.treeview.heading("ID", text="ID")
+        self.treeview.heading("Client", text="Client")
+        self.treeview.heading("Airline", text="Airline")
+        self.treeview.heading("DateTime", text="Date/Time")
+        self.treeview.heading("StartCity", text="Start City")
+        self.treeview.heading("EndCity", text="End City")
 
         data = self.rec_man.get_records_by_type('flight')
-        for item in data:
-            treeview.insert("", "end", values=(item.client_id, item.airline_id, item.date, item.start_city, item.end_city))
 
-        treeview.pack(expand=True, fill=tk.BOTH)       
+        for item in data:
+            self.display_rec(item, "insert")
+            #self.treeview.insert("", "end", values=(item.id, item.client_id, item.airline_id, item.date, item.start_city, item.end_city))
+
+        self.treeview.pack(expand=True, fill=tk.BOTH)
+
+        self.treeview.bind('<ButtonRelease-1>', self.select_item)
+
+    def select_item(self, a):
+        """Selection change event on the treeview"""
+        self.selected_item = self.treeview.focus()
+        
+        self.toggle_buttons(self.select_item is not None)
+
+    def toggle_buttons(self, state):
+        """Toggle Edit and Delete buttons based on selected item."""
+        if (state):
+            self.edit_button.config(state=tk.NORMAL)
+            self.delete_button.config(state=tk.NORMAL)
+        else:
+            self.edit_button.config(state=tk.DISABLED)
+            self.delete_button.config(state=tk.DISABLED)
 
     def add_item(self):
         """Handle adding a new item by opening a child window."""
-        self.open_child_window("Add Item")
+        rec = self.rec_man.create_flight(0, 0, date.today(), "", "")
+
+        self.open_child_window(rec, "Add")
 
     def edit_item(self):
         """Handle adding a new item by opening a child window."""
-        self.open_child_window("Edit Item")
+        if (self.selected_item is None):
+            return
+        
+        item_data = self.treeview.item(self.selected_item)
+
+        if not item_data or len(item_data['values']) == 0:
+            return
+
+        row_id = int(item_data['values'][0])
+        rec = self.rec_man.get_record_by_id(row_id, "flight")
+        self.open_child_window(rec, "Edit")
+
 
     def delete_item(self):
         """Handle adding a new item by opening a child window."""
-        messagebox.askquestion("Delete", "Are You Sure?")
+        if (self.selected_item is None):
+            messagebox.showinfo("Info", "Please select a flight to delete")
+            return
+        
+        item_data = self.treeview.item(self.selected_item)
+        row_id = int(item_data['values'][0])
+        record_name = str(item_data['values'][1])
+
+        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete airline '{record_name}'?"):
+            try:
+                if not item_data or len(item_data['values']) == 0:
+                    return
+
+                if (self.rec_man.delete_record(row_id, "flight")):
+                    self.treeview.delete(self.selected_item)
+                    messagebox.showinfo("Delete Successful", "Flight deleted successfully!")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+
 
     def search_item(self):
         """Handle searching for an item by opening a child window."""
-        self.open_child_window("Search Item")
+        self.open_child_window(None, "Search")
 
-    def open_child_window(self, action):
+    def display_rec(self, rec, action):
+        """Display the record on the grid after resolving dependencies for name values."""
+        client_rec = self.rec_man.get_record_by_id(rec.client_id, "client")
+        airline_rec = self.rec_man.get_record_by_id(rec.airline_id, "airline")
+
+        client_name = client_rec.name or ""
+        airline_name = airline_rec.company_name or ""
+
+        if (action == "update"):
+            self.treeview.item(self.selected_item, text="", values=(rec.id, client_name, rec.airline_name, rec.date, rec.start_city, rec.end_city))
+        else:
+            self.treeview.insert("", "end", values=(rec.id, client_name, airline_name, rec.date, rec.start_city, rec.end_city))
+
+    def open_child_window(self, rec, action):
         """Open a modal child window with 'OK' and 'Cancel' buttons."""
-        child_window = flight_capture.FlightCapture()
+        result, output = flight_capture.FlightCapture(rec, action).show()
+
+        if (result):
+            if (action == "Add"):
+                self.rec_man.flights.append(output)
+                #self.treeview.insert("", "end", values=(output.id, output.client_id, output.airline_id, output.date, output.start_city, output.end_city))
+                self.display_rec(output, "insert")
+            elif (action == "Edit"):
+                for a in self.rec_man.flights:
+                    if a.id == output.id:
+                        a.client_id = output.client_id
+                        a.airline_id = output.airline_id
+                        a.date = output.date
+                        a.start_city = output.start_city
+                        a.end_city = output.end_city
+                        self.display_rec(output, "update")
+                        #self.treeview.item(self.selected_item, text="", values=(output.id, output.client_id, output.airline_id, output.date, output.start_city, output.end_city))
+
+        self.rec_man.save_to_file()
