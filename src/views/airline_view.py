@@ -25,7 +25,8 @@ class AirlineView(ttk.Frame):
         toolbar = ttk.Frame(self.parent)
         toolbar.pack(fill=tk.X)
 
-        label = ttk.Label(toolbar, text="Airline Company Records", font=(12.5), 'bold'))
+        #label = ttk.Label(toolbar, text="Airline Company Records", font=(12.5, 'bold'))
+        label = ttk.Label(toolbar, text="Airline Company Records", font=(12.5))
         label.pack(pady=5)
 
         # Add a separator
@@ -41,7 +42,7 @@ class AirlineView(ttk.Frame):
         self.delete_button = tk.Button(toolbar, text="Delete", font=(12), width=10, command=self.delete_item, state="disabled")
         self.delete_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.search_button = tk.Button(toolbar, text="Search", font=(12) width=10, command=self.search_item)
+        self.search_button = tk.Button(toolbar, text="Search", font=(12), width=10, command=self.search_item)
         self.search_button.pack(side=tk.RIGHT, padx=5, pady=5)
 
     def create_treeview(self):

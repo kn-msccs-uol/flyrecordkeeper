@@ -26,7 +26,8 @@ class FlightView(tk.Frame):
         toolbar = ttk.Frame(self.parent)
         toolbar.pack(fill=tk.X)
 
-        label = ttk.Label(toolbar, text="Flight Records", font=(14,'bold'))
+        #label = ttk.Label(toolbar, text="Flight Records", font=(14,'bold'))
+        label = ttk.Label(toolbar, text="Flight Records", font=(14))
         label.pack(pady=5)
 
         # Add a separator
@@ -47,10 +48,10 @@ class FlightView(tk.Frame):
 
     def create_treeview(self):
         # Define a style for the Treeview
-        style = ttk.Style()
-        style.configure('Treeview', font=(12))
+        #style = ttk.Style()
+        #style.configure('Treeview', font=(12))
         # Configure the font for Treeview items
-        style.configure('Treeview.Heading', font=(12, 'bold')
+        #style.configure('Treeview.Heading', font=(12, 'bold'))
                         
         """Create the treeview widget to display data."""
         treeview_frame = tk.Frame(self.parent)

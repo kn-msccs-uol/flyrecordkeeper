@@ -50,8 +50,9 @@ class AirlineCapture(tk.Toplevel):
         
         header_label = ttk.Label(
             header_frame,
-            text=f"{self.action} Airline", 
-            font=(12, 'bold')
+            text=f"{self.action} Airline",
+            font=(12)
+            #font=(12, 'bold')
         )
         header_label.pack(anchor=tk.W)
         

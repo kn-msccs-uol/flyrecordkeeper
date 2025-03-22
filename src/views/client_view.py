@@ -25,7 +25,8 @@ class ClientView(ttk.Frame):
         toolbar = ttk.Frame(self.parent)
         toolbar.pack(fill=tk.X)
 
-        label = ttk.Label(toolbar, text="Client Records", font=(12, 'bold'))
+        #label = ttk.Label(toolbar, text="Client Records", font=(12, 'bold'))
+        label = ttk.Label(toolbar, text="Client Records", font=(12))
         label.pack(pady=5)
 
         # Add a separator
@@ -47,10 +48,10 @@ class ClientView(ttk.Frame):
     def create_treeview(self):
         """Create the treeview widget to display data."""
         # Define a style for the Treeview
-        style = ttk.Style()
-        style.configure('Treeview', font=(12))
+        #style = ttk.Style()
+        #style.configure('Treeview', font=(12))
         # Configure the font for Treeview items
-        style.configure('Treeview.Heading', font=(12, 'bold'))
+        #style.configure('Treeview.Heading', font=(12, 'bold'))
         
         treeview_frame = ttk.Frame(self.parent)
         treeview_frame.pack(fill=tk.BOTH, expand=True)
@@ -99,8 +100,8 @@ class ClientView(ttk.Frame):
         data = self.rec_man.get_records_by_type('client')
         for item in data:
             self.treeview.insert("", "end", values=(
-                item.id, item.name, item.address_line1, item.address_line2, 
-                item.address_line3, item.city, item.state, item.zip_code, 
+                item.id, item.name, item.address_line1, item.address_line2,
+                item.address_line3, item.city, item.state, item.zip_code,
                 item.country, item.phone_number
             ))
 
