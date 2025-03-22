@@ -12,17 +12,32 @@
             "zip_code": "0001",
             "country": "Far Away",
             "phone_number": "555-111-2222"
-        }
-    ],
-    "flights": [
+        },
         {
-            "id": "1",
-            "client_id": "1",
-            "airline_id": "1",
-            "type": "flight",
-            "date": "2025-03-31",
-            "start_city": "Here",
-            "end_city": "There"
+            "id": 2,
+            "type": "client",
+            "name": "John Doe",
+            "address_line1": "1 Nowhere",
+            "address_line2": "On this earth",
+            "address_line3": "does he live",
+            "city": "Morgue",
+            "state": "Texas",
+            "zip_code": "001122",
+            "country": "Murica",
+            "phone_number": "555-111-2345"
+        },
+        {
+            "id": 3,
+            "type": "client",
+            "name": "Cookie Monster",
+            "address_line1": "123 Sesame Street",
+            "address_line2": "Studio 1",
+            "address_line3": "Hollywood",
+            "city": "Los Angeles",
+            "state": "California",
+            "zip_code": "12331",
+            "country": "Murica",
+            "phone_number": "555-000-1234"
         }
     ],
     "airlines": [
@@ -30,6 +45,50 @@
             "id": "1",
             "type": "airline",
             "company_name": "FlyCo"
+        },
+        {
+            "id": 2,
+            "type": "airline",
+            "company_name": "Etihad"
+        },
+        {
+            "id": 3,
+            "type": "airline",
+            "company_name": "Emirates"
+        },
+        {
+            "id": 4,
+            "type": "airline",
+            "company_name": "Delta"
+        }
+    ],
+    "flights": [
+        {
+            "id": "1",
+            "type": "flight",
+            "client_id": "1",
+            "airline_id": "1",
+            "date": "2025-03-31",
+            "start_city": "Here",
+            "end_city": "There"
+        },
+        {
+            "id": 2,
+            "type": "flight",
+            "client_id": 2,
+            "airline_id": 2,
+            "date": "2025-03-22",
+            "start_city": "Abu Dhabi",
+            "end_city": "Paris"
+        },
+        {
+            "id": 3,
+            "type": "flight",
+            "client_id": 3,
+            "airline_id": 3,
+            "date": "2025-03-22",
+            "start_city": "Los Angeles",
+            "end_city": "Dubai"
         }
     ]
 }

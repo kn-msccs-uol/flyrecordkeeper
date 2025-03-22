@@ -2,14 +2,14 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
 from datetime import date
-
+from models import record_manager
 
 class FlightCapture(tk.Toplevel):
-    def __init__(self, rec, action="Add"):
+    def __init__(self, rec_man, rec, action="Add"):
         super().__init__()
 
         self.title(f"{action} Flight Record")
-        self.geometry("500x300")
+        self.geometry("550x300")
         self.resizable(False, False)
         
         # Make it modal
@@ -17,9 +17,21 @@ class FlightCapture(tk.Toplevel):
         self.grab_set()
 
         # Store the record and initialize result
+        self.rec_man = rec_man
         self.rec = rec
         self.result = False
         self.action = action
+        self.client_names = []
+        self.airline_names = []
+
+        #fetch reference data
+        self.client_names.append("-- Please Select --")
+        for c in self.rec_man.clients:
+            self.client_names.append(c.name)
+        
+        self.airline_names.append("-- Please Select --")
+        for c in self.rec_man.airlines:
+            self.airline_names.append(c.company_name)
         
         # Create interface
         self.setup_interface()
@@ -68,14 +80,20 @@ class FlightCapture(tk.Toplevel):
         lbl_client_id.grid(row=0,column=0, padx=(50,0), sticky="w")
         
         self.txt_client_id = ttk.Entry(content_frame, width=30)
-        self.txt_client_id.grid(row=0, column=1, padx=5, pady=5, sticky="we")
+        #self.txt_client_id.grid(row=0, column=1, padx=5, pady=5, sticky="we")
+
+        self.client_select = ttk.Combobox(content_frame, values=self.client_names, width=30)
+        self.client_select.grid(row=0, column=1, padx=5, pady=5, sticky="we")
 
         # Airline_ID
         lbl_airline_id = ttk.Label(content_frame, text="Airline ID:", width=15, anchor="w")
         lbl_airline_id.grid(row=1,column=0, padx=(50,0), sticky="w")
         
         self.txt_airline_id = ttk.Entry(content_frame, width=30)
-        self.txt_airline_id.grid(row=1, column=1, padx=5, pady=5, sticky="we")
+        #self.txt_airline_id.grid(row=1, column=1, padx=5, pady=5, sticky="we")
+
+        self.airline_select = ttk.Combobox(content_frame, values=self.airline_names, width=30)
+        self.airline_select.grid(row=1, column=1, padx=5, pady=5, sticky="we")
 
         # Date/Time
         lbl_date = ttk.Label(content_frame, text="Date and Time:", width=15, anchor="w")
@@ -117,6 +135,17 @@ class FlightCapture(tk.Toplevel):
         self.txt_start_city.insert(0, self.rec.start_city)
         self.txt_end_city.insert(0, self.rec.end_city)
         
+        client_idx = 0
+        if (self.rec.client_name and self.rec.client_name != ""):
+            client_idx = self.client_names.index(self.rec.client_name)
+
+        airline_idx = 0
+        if (self.rec.airline_name and self.rec.airline_name != ""):
+            airline_idx = self.airline_names.index(self.rec.airline_name)
+
+        self.client_select.current(client_idx)
+        self.airline_select.current(airline_idx)
+
         # Set focus to the name field for immediate editing
         self.txt_client_id.focus_set()
     
@@ -136,15 +165,39 @@ class FlightCapture(tk.Toplevel):
         
         return True
     
+    # def index_of(self, cbo: ttk.ComboBox, search_val: str):
+    #     #for v in cbo.values()):
+
+
+    #     return 0
+    
 
     def update_rec(self):
         """Update the record with values from the interface."""
         self.rec.client_id = self.txt_client_id.get().strip()
+        self.rec.client_name = self.client_select.get()
         self.rec.airline_id = self.txt_airline_id.get().strip()
+        self.rec.airline_name = self.airline_select.get()
         self.rec.date = self.txt_date.get().strip()
         self.rec.start_city = self.txt_start_city.get().strip()
         self.rec.end_city = self.txt_end_city.get().strip()
-    
+
+        self.resolve_ids()
+
+
+    def resolve_ids(self):
+        """Resolve id's for combo box selections."""
+        for c in self.rec_man.clients:
+            if self.rec.client_name == c.name:
+                self.rec.client_id = c.id
+                break
+
+        for a in self.rec_man.airlines:
+            if self.rec.airline_name == a.company_name:
+                self.rec.airline_id = a.id
+                break
+
+
     def cancel(self):
         """Handle the Cancel button action."""
         self.result = False
@@ -155,6 +208,10 @@ class FlightCapture(tk.Toplevel):
         if self.validate():
             self.update_rec()
             self.result = True
+
+            print('rec from capture')
+            print(self.rec.to_dict())
+
             # Close the child window after the action
             self.destroy()
     

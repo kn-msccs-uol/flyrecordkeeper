@@ -133,22 +133,40 @@ class FlightView(tk.Frame):
         """Handle searching for an item by opening a child window."""
         self.open_child_window(None, "Search")
 
+    def resolve_references(self, rec):
+        """Resolve dependencies for name values."""
+        if (int(rec.client_id) > 0):
+            client_rec = self.rec_man.get_record_by_id(rec.client_id, "client")
+            rec.client_name = client_rec.name or ""
+        else:
+            rec.client_name = ""
+
+        if (int(rec.airline_id) > 0):
+            airline_rec = self.rec_man.get_record_by_id(rec.airline_id, "airline")
+            rec.airline_name = airline_rec.company_name or ""
+        else:
+            rec.airline_name = ""
+
+        return rec
+
     def display_rec(self, rec, action):
         """Display the record on the grid after resolving dependencies for name values."""
-        client_rec = self.rec_man.get_record_by_id(rec.client_id, "client")
-        airline_rec = self.rec_man.get_record_by_id(rec.airline_id, "airline")
-
-        client_name = client_rec.name or ""
-        airline_name = airline_rec.company_name or ""
+        rec = self.resolve_references(rec)
 
         if (action == "update"):
-            self.treeview.item(self.selected_item, text="", values=(rec.id, client_name, rec.airline_name, rec.date, rec.start_city, rec.end_city))
+            self.treeview.item(self.selected_item, text="", values=(rec.id, rec.client_name, rec.airline_name, rec.date, rec.start_city, rec.end_city))
         else:
-            self.treeview.insert("", "end", values=(rec.id, client_name, airline_name, rec.date, rec.start_city, rec.end_city))
+            self.treeview.insert("", "end", values=(rec.id, rec.client_name, rec.airline_name, rec.date, rec.start_city, rec.end_city))
 
     def open_child_window(self, rec, action):
         """Open a modal child window with 'OK' and 'Cancel' buttons."""
-        result, output = flight_capture.FlightCapture(rec, action).show()
+        rec = self.resolve_references(rec)
+        print('rec in from view: ')
+        print(rec.to_dict())
+        result, output = flight_capture.FlightCapture(self.rec_man, rec, action).show()
+
+        print('rec out from view: ')
+        print(output.to_dict())
 
         if (result):
             if (action == "Add"):
