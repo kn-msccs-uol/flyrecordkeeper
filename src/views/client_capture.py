@@ -8,9 +8,9 @@ class ClientCapture(tk.Toplevel):
     def __init__(self, rec, action="Add"):
         super().__init__()
 
-        # Set window properties
+        # Set window properties across different diplay resolutions
         self.title(f"{action} Client Record")
-        self.geometry("500x450")
+        self.geometry("500x475")
         self.resizable(False, False)
 
         # Make it modal
