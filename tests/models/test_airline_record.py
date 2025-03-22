@@ -8,21 +8,27 @@ from models.airline_record import AirlineRecord
 
 class TestAirlineRecord(unittest.TestCase):
 
+    #Set up of sample data
     def setUp(self):
         self.sample_data = {
             "record_id": 1,
-            "company_name": "Emirates"
+            "company_name": "British Airways"
         }
-        self.airline = AirlineRecord(**self.sample_data)
+        self.airline = AirlineRecord(self.sample_data)
 
+    #Test coversion to dictionary type
     def test_to_dict(self):
         airline_dict = self.airline.to_dict()
+        self.assertEqual(airline_dict["id"], self.sample_data["record_id"])
         self.assertEqual(airline_dict["company_name"], self.sample_data["company_name"])
 
+    #Test creation from dictionary type
     def test_from_dict(self):
         airline = AirlineRecord.from_dict(self.sample_data)
+        self.assertEqual(airline.record_id, self.sample_data["record_id"])
         self.assertEqual(airline.company_name, self.sample_data["company_name"])
 
+    #Test validation of sample data
     def test_validation_success(self):
         errors = AirlineRecord.validate(self.sample_data)
         self.assertEqual(errors, {})
