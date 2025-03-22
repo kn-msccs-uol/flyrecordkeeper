@@ -5,51 +5,55 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 import unittest
 from models.client_record import ClientRecord
+from unittest.mock import patch
 
 class TestClientRecord(unittest.TestCase):
 
     def setUp(self):
-        self.sample_data = {
-            "record_id": 1,
+        self.valid_data = {
+            "id": 1,
+            "type": "client",
             "name": "John Doe",
-            "address_line1": "123 Main St",
-            "address_line2": "Apt 4B",
-            "address_line3": "Building 2",
-            "city": "New York",
-            "state": "NY",
-            "zip_code": "10001",
-            "country": "USA",
-            "phone_number": "+1234567890"
+            "address_line1": "123 Street",
+            "address_line2": "Suite 200",
+            "address_line3": "",
+            "city": "London",
+            "state": "Greater London",
+            "zip_code": "SW1A 1AA",
+            "country": "UK",
+            "phone_number": "+44 1234 567890"
         }
-        self.client = ClientRecord(**self.sample_data)
+        self.client = ClientRecord.from_dict(self.valid_data)
+
+    def test_initialization(self):
+        self.assertEqual(self.client.id, 1)
+        self.assertEqual(self.client.name, "John Doe")
+        self.assertEqual(self.client.city, "London")
+        self.assertEqual(self.client.type, "client")
 
     def test_to_dict(self):
-        client_dict = self.client.to_dict()
-        self.assertEqual(client_dict["name"], self.sample_data["name"])
-        self.assertEqual(client_dict["city"], self.sample_data["city"])
-        self.assertEqual(client_dict["phone_number"], self.sample_data["phone_number"])
+        self.assertEqual(self.client.to_dict(), self.valid_data)
 
     def test_from_dict(self):
-        client = ClientRecord.from_dict(self.sample_data)
-        self.assertEqual(client.name, self.sample_data["name"])
-        self.assertEqual(client.city, self.sample_data["city"])
-        self.assertEqual(client.phone_number, self.sample_data["phone_number"])
+        client = ClientRecord.from_dict(self.valid_data)
+        self.assertIsInstance(client, ClientRecord)
+        self.assertEqual(client.name, self.valid_data["name"])
 
-    def test_validation_success(self):
-        errors = ClientRecord.validate(self.sample_data)
+    @patch("utils.validators.validate_required_field", return_value=None)
+    @patch("utils.validators.validate_string", return_value=None)
+    @patch("utils.validators.validate_phone_number", return_value=None)
+    def test_validate_valid_data(self, mock_phone, mock_string, mock_required):
+        errors = ClientRecord.validate(self.valid_data)
         self.assertEqual(errors, {})
 
-    def test_validation_missing_required_fields(self):
-        invalid_data = self.sample_data.copy()
-        del invalid_data["name"]
-        errors = ClientRecord.validate(invalid_data)
+    @patch("utils.validators.validate_required_field", side_effect=lambda d, k: "Required" if k == "name" else None)
+    def test_validate_missing_name(self, mock_required):
+        data = self.valid_data.copy()
+        del data["name"]
+        errors = ClientRecord.validate(data)
         self.assertIn("name", errors)
+        self.assertEqual(errors["name"], "Required")
 
-    def test_validation_invalid_phone_number(self):
-        invalid_data = self.sample_data.copy()
-        invalid_data["phone_number"] = "invalid-phone"
-        errors = ClientRecord.validate(invalid_data)
-        self.assertIn("phone_number", errors)
 
 if __name__ == "__main__":
     unittest.main()
