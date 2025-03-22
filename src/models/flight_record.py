@@ -51,7 +51,7 @@ class FlightRecord(BaseRecord):
         flight_dict.update({
             "client_id": self.client_id,
             "airline_id": self.airline_id,
-            "date": self.date,#.isoformat(),
+            "date": self.date.isoformat(),
             "start_city": self.start_city,
             "end_city": self.end_city
         })
@@ -72,7 +72,7 @@ class FlightRecord(BaseRecord):
             record_id=data["id"],
             client_id=data["client_id"],
             airline_id=data["airline_id"],
-            date=data["date"],#datetime.fromisoformat(data["date"]),
+            date=datetime.fromisoformat(data["date"]),
             start_city=data["start_city"],
             end_city=data["end_city"]
         )

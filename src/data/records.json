@@ -67,8 +67,8 @@
             "id": "1",
             "type": "flight",
             "client_id": "1",
-            "airline_id": "1",
-            "date": "2025-03-31",
+            "airline_id": 2,
+            "date": "2025-03-23T08:14:00",
             "start_city": "Here",
             "end_city": "There"
         },
@@ -77,7 +77,7 @@
             "type": "flight",
             "client_id": 2,
             "airline_id": 2,
-            "date": "2025-03-22",
+            "date": "2025-03-23T06:38:00",
             "start_city": "Abu Dhabi",
             "end_city": "Paris"
         },
@@ -86,9 +86,45 @@
             "type": "flight",
             "client_id": 3,
             "airline_id": 3,
-            "date": "2025-03-22",
+            "date": "2025-03-23T06:21:00",
             "start_city": "Los Angeles",
             "end_city": "Dubai"
+        },
+        {
+            "id": 4,
+            "type": "flight",
+            "client_id": 3,
+            "airline_id": 4,
+            "date": "2025-03-23T04:35:00",
+            "start_city": "hither",
+            "end_city": "thither"
+        },
+        {
+            "id": 5,
+            "type": "flight",
+            "client_id": 2,
+            "airline_id": 3,
+            "date": "2025-03-23T01:18:00",
+            "start_city": "here",
+            "end_city": "there"
+        },
+        {
+            "id": 6,
+            "type": "flight",
+            "client_id": "1",
+            "airline_id": 4,
+            "date": "2025-03-23T19:35:00",
+            "start_city": "near",
+            "end_city": "far"
+        },
+        {
+            "id": 7,
+            "type": "flight",
+            "client_id": 2,
+            "airline_id": "1",
+            "date": "2027-02-03T16:30:00",
+            "start_city": "Munich",
+            "end_city": "Brussels"
         }
     ]
 }

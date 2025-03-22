@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
-from datetime import date
+from datetime import datetime
 from models import record_manager
 
 from views import flight_capture
@@ -88,7 +88,7 @@ class FlightView(tk.Frame):
 
     def add_item(self):
         """Handle adding a new item by opening a child window."""
-        rec = self.rec_man.create_flight(0, 0, date.today(), "", "")
+        rec = self.rec_man.create_flight(0, 0, datetime.now(), "", "")
 
         self.open_child_window(rec, "Add")
 
@@ -161,17 +161,11 @@ class FlightView(tk.Frame):
     def open_child_window(self, rec, action):
         """Open a modal child window with 'OK' and 'Cancel' buttons."""
         rec = self.resolve_references(rec)
-        print('rec in from view: ')
-        print(rec.to_dict())
         result, output = flight_capture.FlightCapture(self.rec_man, rec, action).show()
-
-        print('rec out from view: ')
-        print(output.to_dict())
 
         if (result):
             if (action == "Add"):
                 self.rec_man.flights.append(output)
-                #self.treeview.insert("", "end", values=(output.id, output.client_id, output.airline_id, output.date, output.start_city, output.end_city))
                 self.display_rec(output, "insert")
             elif (action == "Edit"):
                 for a in self.rec_man.flights:
@@ -182,6 +176,5 @@ class FlightView(tk.Frame):
                         a.start_city = output.start_city
                         a.end_city = output.end_city
                         self.display_rec(output, "update")
-                        #self.treeview.item(self.selected_item, text="", values=(output.id, output.client_id, output.airline_id, output.date, output.start_city, output.end_city))
 
         self.rec_man.save_to_file()
