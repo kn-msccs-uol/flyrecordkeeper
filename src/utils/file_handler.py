@@ -5,7 +5,7 @@ This module provides functionality for loading and saving records
 to and from JSON files.
 """
 import json
-import os
+import os, shutil
 from typing import List, Dict, Any, Union
 from datetime import datetime
 
@@ -29,7 +29,8 @@ def load_records(filename: str) -> List[Dict[str, Any]]:
         json.JSONDecodeError: If the file contains invalid JSON
     """
     if not os.path.exists(filename):
-        return []
+        if not new_from_template(filename):
+            return []
     
     try:
         with open(filename, 'r') as file:
@@ -97,3 +98,13 @@ def dict_to_record(record_dict: Dict[str, Any]) -> Union[ClientRecord, AirlineRe
     else:
         print(f"Unknown record type: {record_type}")
         return None
+
+def new_from_template(filename):
+    """Create a clone of the record template file to recreate the default database"""
+    try:
+        shutil.copy("data/recordtemplate.json", filename)
+    except Exception as e:
+        print(f"Loading default database from template failed with exception ({e})")
+        return False
+    
+    return True
