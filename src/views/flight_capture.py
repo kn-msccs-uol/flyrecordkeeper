@@ -4,15 +4,17 @@ from tkinter import ttk, messagebox
 from tkcalendar import Calendar
 from tktimepicker import SpinTimePickerModern
 from tktimepicker import constants
+
 from models import record_manager
 from models import flight_record
+
 
 class FlightCapture(tk.Toplevel):
     def __init__(self, rec_man: record_manager.RecordManager, rec: flight_record.FlightRecord, action="Add"):
         super().__init__()
 
         self.title(f"{action} Flight Record")
-        self.geometry("550x500")
+        self.geometry("550x525")
         self.resizable(False, False)
 
         # Make it modal
@@ -27,7 +29,7 @@ class FlightCapture(tk.Toplevel):
         self.client_names = []
         self.airline_names = []
 
-        #fetch reference data
+        # Fetch reference data
         self.client_names.append("-- Please Select --")
         for c in self.rec_man.clients:
             self.client_names.append(c.name)
@@ -36,6 +38,26 @@ class FlightCapture(tk.Toplevel):
         for c in self.rec_man.airlines:
             self.airline_names.append(c.company_name)
 
+        # Detect and configure system fonts
+        import platform
+        import tkinter.font as tkfont
+
+        system = platform.system()
+        self.default_font = tkfont.nametofont("TkDefaultFont")
+
+        if system == "Windows":
+            system_font = "Segoe UI"
+        elif system == "Darwin":  # macOS
+            system_font = "Helvetica Neue"
+        else:  # Linux/Unix
+            system_font = "DejaVu Sans"
+
+        self.default_font.configure(family=system_font, size=10)
+
+        # Configure bold font
+        self.bold_font = tkfont.Font(font=self.default_font)
+        self.bold_font.configure(weight="bold", size=12)
+        
         # Create interface
         self.setup_interface()
 
@@ -68,8 +90,8 @@ class FlightCapture(tk.Toplevel):
 
         header_label = ttk.Label(
             header_frame,
-            text=f"{self.action} Flight", 
-            font=(12)
+            text=f"{self.action} Flight",
+            font=self.bold_font
         )
         header_label.pack(anchor=tk.W)
 
@@ -85,20 +107,20 @@ class FlightCapture(tk.Toplevel):
         lbl_client_id = ttk.Label(content_frame, text="Client ID:", width=15, anchor="w")
         lbl_client_id.grid(row=0,column=0, padx=(50,0), sticky="w")
 
-        self.txt_client_id = ttk.Entry(content_frame, width=30)
+        self.txt_client_id = ttk.Entry(content_frame, font=self.default_font, width=30)
         #self.txt_client_id.grid(row=0, column=1, padx=5, pady=5, sticky="we")
 
-        self.client_select = ttk.Combobox(content_frame, values=self.client_names, width=30)
+        self.client_select = ttk.Combobox(content_frame, font=self.default_font, values=self.client_names, width=30)
         self.client_select.grid(row=0, column=1, padx=5, pady=5, sticky="we")
 
         # Airline_ID
         lbl_airline_id = ttk.Label(content_frame, text="Airline ID:", width=15, anchor="w")
         lbl_airline_id.grid(row=1,column=0, padx=(50,0), sticky="w")
 
-        self.txt_airline_id = ttk.Entry(content_frame, width=30)
+        self.txt_airline_id = ttk.Entry(content_frame, font=self.default_font, width=30)
         #self.txt_airline_id.grid(row=1, column=1, padx=5, pady=5, sticky="we")
 
-        self.airline_select = ttk.Combobox(content_frame, values=self.airline_names, width=30)
+        self.airline_select = ttk.Combobox(content_frame, font=self.default_font, values=self.airline_names, width=30)
         self.airline_select.grid(row=1, column=1, padx=5, pady=5, sticky="we")
 
         # Date
@@ -106,7 +128,7 @@ class FlightCapture(tk.Toplevel):
         lbl_date.grid(row=2,column=0, padx=(50,0), sticky="nw")
 
         dt = datetime.now()
-        self.txt_date = Calendar(content_frame, selectmode="day", year=dt.year, month=dt.month, day=dt.day)
+        self.txt_date = Calendar(content_frame, font=self.default_font, selectmode="day", year=dt.year, month=dt.month, day=dt.day)
         self.txt_date.grid(row=2, column=1, padx=5, pady=5, sticky="we")
 
         # Time
@@ -115,34 +137,44 @@ class FlightCapture(tk.Toplevel):
 
         self.txt_time = SpinTimePickerModern(content_frame)
         self.txt_time.addAll(constants.HOURS24)  # adds hours clock, minutes and period
-        self.txt_time.configureAll(bg="#404040", height=1, fg="#ffffff", font=("Segoe UI", 11), hoverbg="#404040",
-                                hovercolor="#d73333", clickedbg="#2e2d2d", clickedcolor="#d73333")
-        self.txt_time.configure_separator(bg="#404040", fg="#ffffff")
+
+        self.txt_time.configureAll(bg="#f0f0f0",
+                                   height=1,
+                                   fg="#333333",
+                                   font=self.default_font,
+                                   hoverbg="#e0e0e0",
+                                   hovercolor="#1a1a1a",
+                                   clickedbg="#d0d0d0",
+                                   clickedcolor="#000000")
+        self.txt_time.configure_separator(bg="#f0f0f0", fg="#666666")
         self.txt_time.grid(row=3, column=1, padx=5, pady=5, sticky="we")
 
+        current_time = datetime.now()
+        self.txt_time.set24Hrs(f"{current_time.hour:02d}")
+        self.txt_time.setMins(f"{current_time.minute:02d}")
 
         # Start City
         lbl_start_city = ttk.Label(content_frame, text="Start City:", width=15, anchor="w")
         lbl_start_city.grid(row=4,column=0, padx=(50,0), sticky="w")
 
-        self.txt_start_city = ttk.Entry(content_frame, width=30)
+        self.txt_start_city = ttk.Entry(content_frame, font=self.default_font, width=30)
         self.txt_start_city.grid(row=4, column=1, padx=5, pady=5, sticky="we")
 
         # End City
         lbl_end_city = ttk.Label(content_frame, text="End City:", width=15, anchor="w")
         lbl_end_city.grid(row=5,column=0, padx=(50,0), sticky="w")
 
-        self.txt_end_city = ttk.Entry(content_frame, width=30)
+        self.txt_end_city = ttk.Entry(content_frame, font=self.default_font, width=30)
         self.txt_end_city.grid(row=5, column=1, padx=5, pady=5, sticky="we")
 
         # Toolbar with OK and Cancel buttons
         toolbar = ttk.Frame(main_frame, padding=(10, 10))
         toolbar.pack(fill=tk.X)
 
-        cancel_button = tk.Button(toolbar, text="Cancel", width=10, command=self.cancel)
+        cancel_button = ttk.Button(toolbar, text="Cancel", width=10, command=self.cancel)
         cancel_button.pack(side=tk.RIGHT, padx=5)
 
-        ok_button = tk.Button(toolbar, text="OK", width=10, command=self.ok)
+        ok_button = ttk.Button(toolbar, text="OK", width=10, command=self.ok)
         ok_button.pack(side=tk.RIGHT, padx=5)
 
 

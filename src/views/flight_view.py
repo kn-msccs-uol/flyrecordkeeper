@@ -26,12 +26,15 @@ class FlightView(tk.Frame):
 
         if system == "Windows":
             system_font = "Segoe UI"
+            self.button_font = ("Segoe UI Emoji", 11)
         elif system == "Darwin":  # macOS
             system_font = "Helvetica Neue"
+            self.button_font = ("Apple Color Emoji", 11)
         else:  # Linux/Unix
             system_font = "DejaVu Sans"
+            self.button_font = ("Noto Color Emoji", 11)
 
-        self.default_font.configure(family=system_font, size=12)
+        self.default_font.configure(family=system_font, size=10)
 
         # Configure bold font
         self.bold_font = tkfont.Font(font=self.default_font)
@@ -39,15 +42,22 @@ class FlightView(tk.Frame):
 
         self.rec_man = record_manager.RecordManager()
 
+        self.setup_button_styles
         self.create_toolbar()
         self.create_treeview()
+
+    def setup_button_styles(self):
+        style = ttk.Style()
+        style.configure('Add.TButton', font=self.button_font, width=10)
+        style.configure('Edit.TButton', font=self.button_font, width=15)
+        style.configure('Delete.TButton', font=self.button_font, width=10)
+        style.configure('Search.TButton', font=self.button_font, width=10)
 
     def create_toolbar(self):
         """Create the toolbar with Add and Search buttons."""
         toolbar = ttk.Frame(self.parent)
         toolbar.pack(fill=tk.X)
 
-        #label = ttk.Label(toolbar, text="Flight Records", font=(14,'bold'))
         label = ttk.Label(toolbar, text="Flight Records", font=self.bold_font)
         label.pack(pady=5)
 
@@ -55,13 +65,13 @@ class FlightView(tk.Frame):
         separator = ttk.Separator(toolbar, orient='horizontal')
         separator.pack(fill='x', pady=(10,0))
 
-        self.add_button = tk.Button(toolbar, text="Add", font=self.default_font, width=10, command=self.add_item)
+        self.add_button = ttk.Button(toolbar, text="➕ Add", style='Add.TButton', command=self.add_item)
         self.add_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.edit_button = tk.Button(toolbar, text="Edit/Update", font=self.default_font, width=15, command=self.edit_item, state="disabled")
+        self.edit_button = ttk.Button(toolbar, text="✏️ Edit/Update", style='Edit.TButton', command=self.edit_item, state="disabled")
         self.edit_button.pack(side=tk.LEFT, padx=15, pady=5)
 
-        self.delete_button = tk.Button(toolbar, text="Delete", font=self.default_font, width=10, command=self.delete_item, state="disabled")
+        self.delete_button = ttk.Button(toolbar, text="❌ Delete", style='Delete.TButton', command=self.delete_item, state="disabled")
         self.delete_button.pack(side=tk.LEFT, padx=5, pady=5)
 
         # Search implementation
@@ -73,7 +83,7 @@ class FlightView(tk.Frame):
         self.search_entry = ttk.Entry(
             self.search_frame, 
             textvariable=self.search_var,
-            font=self.default_font,
+            font=(self.default_font, 11),
             width=20
         )
 
@@ -83,11 +93,10 @@ class FlightView(tk.Frame):
         self.search_entry.bind("<FocusOut>", self.handle_focus_out)
 
         # Create a button with a magnifying glass icon
-        self.search_button = tk.Button(
+        self.search_button = ttk.Button(
             self.search_frame,
             text="🔍 Search",
-            font=self.default_font,
-            width=10,
+            style='Search.TButton',
             command=self.toggle_search_mode
         )
 
