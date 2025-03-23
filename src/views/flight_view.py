@@ -283,9 +283,8 @@ class FlightView(tk.Frame):
         
         item_data = self.treeview.item(self.selected_item)
         row_id = int(item_data['values'][0])
-        record_name = str(item_data['values'][1])
 
-        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete airline '{record_name}'?"):
+        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete 'Flight ID No. {row_id}'?"):
             try:
                 if not item_data or len(item_data['values']) == 0:
                     return
