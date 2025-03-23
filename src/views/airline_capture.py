@@ -8,7 +8,7 @@ class AirlineCapture(tk.Toplevel):
         
         # Set window properties
         self.title(f"{action} Airline Record")
-        self.geometry("420x200")
+        self.geometry("475x225")
         self.resizable(False, False)
         
         # Make it modal
@@ -19,6 +19,26 @@ class AirlineCapture(tk.Toplevel):
         self.rec = rec
         self.result = False
         self.action = action
+
+        # Detect and configure system fonts
+        import platform
+        import tkinter.font as tkfont
+
+        system = platform.system()
+        self.default_font = tkfont.nametofont("TkDefaultFont")
+
+        if system == "Windows":
+            system_font = "Segoe UI"
+        elif system == "Darwin":  # macOS
+            system_font = "Helvetica Neue"
+        else:  # Linux/Unix
+            system_font = "DejaVu Sans"
+
+        self.default_font.configure(family=system_font, size=12)
+
+        # Configure bold font
+        self.bold_font = tkfont.Font(font=self.default_font)
+        self.bold_font.configure(weight="bold")
         
         # Create interface
         self.setup_interface()
@@ -51,8 +71,7 @@ class AirlineCapture(tk.Toplevel):
         header_label = ttk.Label(
             header_frame,
             text=f"{self.action} Airline",
-            font=(12)
-            #font=(12, 'bold')
+            font=self.bold_font
         )
         header_label.pack(anchor=tk.W)
         
@@ -75,7 +94,7 @@ class AirlineCapture(tk.Toplevel):
         name_label = ttk.Label(content_frame, text="Company Name:", width=15, anchor="w")
         name_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
         
-        self.name_entry = ttk.Entry(content_frame, width=30)
+        self.name_entry = ttk.Entry(content_frame, font=self.default_font, width=30)
         self.name_entry.grid(row=1, column=1, padx=5, pady=5, sticky="we")
         
         # Button toolbar

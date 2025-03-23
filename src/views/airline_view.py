@@ -15,6 +15,27 @@ class AirlineView(ttk.Frame):
         super(AirlineView, self).__init__()
 
         self.parent = parent
+
+        # Detect and configure system fonts
+        import platform
+        import tkinter.font as tkfont
+
+        system = platform.system()
+        self.default_font = tkfont.nametofont("TkDefaultFont")
+
+        if system == "Windows":
+            system_font = "Segoe UI"
+        elif system == "Darwin":  # macOS
+            system_font = "Helvetica Neue"
+        else:  # Linux/Unix
+            system_font = "DejaVu Sans"
+
+        self.default_font.configure(family=system_font, size=12)
+
+        # Configure bold font
+        self.bold_font = tkfont.Font(font=self.default_font)
+        self.bold_font.configure(weight="bold", size=14)
+
         self.rec_man = record_manager.RecordManager()
 
         self.create_toolbar()
@@ -25,25 +46,54 @@ class AirlineView(ttk.Frame):
         toolbar = ttk.Frame(self.parent)
         toolbar.pack(fill=tk.X)
 
-        #label = ttk.Label(toolbar, text="Airline Company Records", font=(12.5, 'bold'))
-        label = ttk.Label(toolbar, text="Airline Company Records", font=(12.5))
+        label = ttk.Label(toolbar, text="Airline Company Records", font=self.bold_font)
         label.pack(pady=5)
 
         # Add a separator
         separator = ttk.Separator(toolbar, orient='horizontal')
         separator.pack(fill='x', pady=(10,0))
 
-        self.add_button = tk.Button(toolbar, text="Add", font=(12), width=10, command=self.add_item)
+        self.add_button = tk.Button(toolbar, text="Add", font=self.default_font, width=10, command=self.add_item)
         self.add_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.edit_button = tk.Button(toolbar, text="Edit/Update", font=(12), width=15, command=self.edit_item, state="disabled")
+        self.edit_button = tk.Button(toolbar, text="Edit/Update", font=self.default_font, width=15, command=self.edit_item, state="disabled")
         self.edit_button.pack(side=tk.LEFT, padx=15, pady=5)
 
-        self.delete_button = tk.Button(toolbar, text="Delete", font=(12), width=10, command=self.delete_item, state="disabled")
+        self.delete_button = tk.Button(toolbar, text="Delete", font=self.default_font, width=10, command=self.delete_item, state="disabled")
         self.delete_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.search_button = tk.Button(toolbar, text="Search", font=(12), width=10, command=self.search_item)
-        self.search_button.pack(side=tk.RIGHT, padx=5, pady=5)
+        # Search implementation
+        self.search_frame = ttk.Frame(toolbar)
+        self.search_frame.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        # Create search variable and entry widget
+        self.search_var = tk.StringVar()
+        self.search_entry = ttk.Entry(
+            self.search_frame, 
+            textvariable=self.search_var,
+            font=self.default_font,
+            width=20
+        )
+
+        # Bind events to the entry widget
+        self.search_entry.bind("<Return>", lambda e: self.perform_search())
+        self.search_entry.bind("<Escape>", lambda e: self.toggle_search_mode())
+        self.search_entry.bind("<FocusOut>", self.handle_focus_out)
+
+        # Create a button with a magnifying glass icon
+        self.search_button = tk.Button(
+            self.search_frame,
+            text="🔍 Search",
+            font=self.default_font,
+            width=10,
+            command=self.toggle_search_mode
+        )
+
+        # Initially show the button
+        self.search_button.pack(side=tk.RIGHT)
+
+        # Track the current search mode
+        self.is_search_mode = False
 
     def create_treeview(self):
         """Create the treeview widget to display data."""
@@ -86,7 +136,7 @@ class AirlineView(ttk.Frame):
         self.treeview.bind("<Configure>", self.on_treeview_configure)
 
         # Initial update after UI is stable
-        self.treeview.after(750, self.adjust_columns_and_scrollbar)
+        self.treeview.after(500, self.adjust_columns_and_scrollbar)
 
     def on_treeview_configure(self, event=None):
         """Handle treeview configuration changes (like resize or moving to another screen)"""
@@ -188,8 +238,78 @@ class AirlineView(ttk.Frame):
                 messagebox.showerror("Error", str(e))
 
     def search_item(self):
-        """Handle searching for an item by opening a child window."""
-        self.open_child_window(None, "Search")
+        """
+        Handle searching for airlines based on the search query.
+        
+        Supports searching by:
+        - All fields (partial or full match)
+        - Multiple criteria (separated by spaces or commas)
+        """
+        # Get the search query from the search variable
+        search_query = self.search_var.get().strip()
+        
+        # If no query entered but search was triggered, show all records
+        if not search_query:
+            self.refresh_treeview()
+            return
+        
+        # Use the SearchController to search for airlines
+        from controllers.search_controller import SearchController
+        search_controller = SearchController(self.rec_man)
+        search_results = search_controller.search_airlines(search_query)
+        
+        # Update the treeview with the results
+        self.update_treeview_with_results(search_results)
+
+    def update_treeview_with_results(self, search_results):
+        """
+        Update the treeview with the returned airline records.
+        
+        Args:
+            search_results: List of airline records to display
+        """
+        # Clear the treeview
+        for item in self.treeview.get_children():
+            self.treeview.delete(item)
+        
+        # Populate the treeview with the filtered results
+        for airline in search_results:
+            self.treeview.insert("", "end", values=(airline.id, airline.company_name))
+
+    def refresh_treeview(self):
+        """Refresh the treeview with all airline records."""
+        all_airlines = self.rec_man.get_records_by_type('airline')
+        self.update_treeview_with_results(all_airlines)
+
+    def toggle_search_mode(self):
+        """Toggle between search button and search entry field."""
+        if not self.is_search_mode:
+            # Switch to search entry mode
+            self.search_button.pack_forget()
+            self.search_entry.pack(side=tk.RIGHT, fill=tk.X)
+            self.search_entry.focus_set()  # Set focus to the entry field
+            self.is_search_mode = True
+        else:
+            # Switch back to button mode
+            self.search_entry.pack_forget()
+            self.search_button.pack(side=tk.RIGHT)
+            self.is_search_mode = False
+
+    def perform_search(self):
+        """Execute the search and revert to button mode."""
+        # Call the original search method
+        self.search_item()
+        
+        # Toggle back to button mode
+        if self.is_search_mode:
+            self.toggle_search_mode()
+
+    def handle_focus_out(self, event):
+        """Handle the focus out event with a small delay to allow clicks to register."""
+        if self.is_search_mode:
+            # Schedule the toggle after a short delay (75ms)
+            # This delay prevents interference with click events
+            self.master.after(75, self.toggle_search_mode)
 
     def open_child_window(self, rec, action):
         """Open a modal child window with 'OK' and 'Cancel' buttons."""
