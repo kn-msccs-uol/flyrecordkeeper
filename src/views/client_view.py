@@ -15,6 +15,27 @@ class ClientView(ttk.Frame):
         super(ClientView, self).__init__()
 
         self.parent = parent
+
+        # Detect and configure system fonts
+        import platform
+        import tkinter.font as tkfont
+
+        system = platform.system()
+        self.default_font = tkfont.nametofont("TkDefaultFont")
+
+        if system == "Windows":
+            system_font = "Segoe UI"
+        elif system == "Darwin":  # macOS
+            system_font = "Helvetica Neue"
+        else:  # Linux/Unix
+            system_font = "DejaVu Sans"
+
+        self.default_font.configure(family=system_font, size=12)
+
+        # Configure bold font
+        self.bold_font = tkfont.Font(font=self.default_font)
+        self.bold_font.configure(weight="bold", size=14)
+
         self.rec_man = record_manager.RecordManager()
 
         self.create_toolbar()
@@ -25,20 +46,20 @@ class ClientView(ttk.Frame):
         toolbar = ttk.Frame(self.parent)
         toolbar.pack(fill=tk.X)
 
-        label = ttk.Label(toolbar, text="Client Records", font=('Segoe UI', 11, 'bold'))
+        label = ttk.Label(toolbar, text="Client Records", font=self.bold_font)
         label.pack(pady=5)
 
         # Add a separator
         separator = ttk.Separator(toolbar, orient='horizontal')
         separator.pack(fill='x', pady=(10,0))
 
-        self.add_button = tk.Button(toolbar, text="Add", width=10, command=self.add_item)
+        self.add_button = tk.Button(toolbar, text="Add", font=self.default_font, width=10, command=self.add_item)
         self.add_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.edit_button = tk.Button(toolbar, text="Edit/Update", width=15, command=self.edit_item, state="disabled")
+        self.edit_button = tk.Button(toolbar, text="Edit/Update", font=self.default_font, width=15, command=self.edit_item, state="disabled")
         self.edit_button.pack(side=tk.LEFT, padx=15, pady=5)
 
-        self.delete_button = tk.Button(toolbar, text="Delete", width=10, command=self.delete_item, state="disabled")
+        self.delete_button = tk.Button(toolbar, text="Delete", font=self.default_font, width=10, command=self.delete_item, state="disabled")
         self.delete_button.pack(side=tk.LEFT, padx=5, pady=5)
 
         # Search implementation
@@ -49,7 +70,8 @@ class ClientView(ttk.Frame):
         self.search_var = tk.StringVar()
         self.search_entry = ttk.Entry(
             self.search_frame, 
-            textvariable=self.search_var, 
+            textvariable=self.search_var,
+            font=self.default_font,
             width=20
         )
 
@@ -62,6 +84,7 @@ class ClientView(ttk.Frame):
         self.search_button = tk.Button(
             self.search_frame,
             text="🔍 Search",
+            font=self.default_font,
             width=10,
             command=self.toggle_search_mode
         )
