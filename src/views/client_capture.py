@@ -40,7 +40,7 @@ class ClientCapture(tk.Toplevel):
 
         # Configure bold font
         self.bold_font = tkfont.Font(font=self.default_font)
-        self.bold_font.configure(weight="bold")
+        self.bold_font.configure(weight="bold", size=12)
         
         # Create interface
         self.setup_interface()
