@@ -41,8 +41,36 @@ class ClientView(ttk.Frame):
         self.delete_button = tk.Button(toolbar, text="Delete", width=10, command=self.delete_item, state="disabled")
         self.delete_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.search_button = tk.Button(toolbar, text="Search", width=10, command=self.search_item)
-        self.search_button.pack(side=tk.RIGHT, padx=5, pady=5)
+        # Search implementation
+        self.search_frame = ttk.Frame(toolbar)
+        self.search_frame.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        # Create search variable and entry widget
+        self.search_var = tk.StringVar()
+        self.search_entry = ttk.Entry(
+            self.search_frame, 
+            textvariable=self.search_var, 
+            width=20
+        )
+
+        # Bind events to the entry widget
+        self.search_entry.bind("<Return>", lambda e: self.perform_search())
+        self.search_entry.bind("<Escape>", lambda e: self.toggle_search_mode())
+        self.search_entry.bind("<FocusOut>", self.handle_focus_out)
+
+        # Create a button with a magnifying glass icon
+        self.search_button = tk.Button(
+            self.search_frame,
+            text="🔍 Search",
+            width=10,
+            command=self.toggle_search_mode
+        )
+
+        # Initially show the button
+        self.search_button.pack(side=tk.RIGHT)
+
+        # Track the current search mode
+        self.is_search_mode = False
 
     def create_treeview(self):
         """Create the treeview widget to display data."""
@@ -233,8 +261,81 @@ class ClientView(ttk.Frame):
                 messagebox.showerror("Error", str(e))
 
     def search_item(self):
-        """Handle searching for an item by opening a child window."""
-        self.open_child_window(None, "Search")
+        """
+        Handle searching for clients based on the search query.
+        
+        Supports searching by:
+        - All fields (partial or full match)
+        - Multiple criteria (separated by spaces or commas)
+        """
+        # Get the search query from the search variable
+        search_query = self.search_var.get().strip()
+        
+        # If no query entered but search was triggered, show all records
+        if not search_query:
+            self.refresh_treeview()
+            return
+        
+        # Use the SearchController to search for clients
+        from controllers.search_controller import SearchController
+        search_controller = SearchController(self.rec_man)
+        search_results = search_controller.search_clients(search_query)
+        
+        # Update the treeview with the results
+        self.update_treeview_with_results(search_results)
+
+    def update_treeview_with_results(self, search_results):
+        """
+        Update the treeview with the returned client records.
+        
+        Args:
+            search_results: List of client records to display
+        """
+        # Clear the treeview
+        for item in self.treeview.get_children():
+            self.treeview.delete(item)
+        
+        # Populate the treeview with the filtered results
+        for client in search_results:
+            self.treeview.insert("", "end", values=(client.id, client.name, client.address_line1,
+                                                    client.address_line2, client.address_line3,
+                                                    client.city, client.state, client.zip_code,
+                                                    client.country, client.phone_number))
+
+    def refresh_treeview(self):
+        """Refresh the treeview with all client records."""
+        all_clients = self.rec_man.get_records_by_type('client')
+        self.update_treeview_with_results(all_clients)
+
+    def toggle_search_mode(self):
+        """Toggle between search button and search entry field."""
+        if not self.is_search_mode:
+            # Switch to search entry mode
+            self.search_button.pack_forget()
+            self.search_entry.pack(side=tk.RIGHT, fill=tk.X)
+            self.search_entry.focus_set()  # Set focus to the entry field
+            self.is_search_mode = True
+        else:
+            # Switch back to button mode
+            self.search_entry.pack_forget()
+            self.search_button.pack(side=tk.RIGHT)
+            self.is_search_mode = False
+
+    def perform_search(self):
+        """Execute the search and revert to button mode."""
+        # Call the original search method
+        self.search_item()
+        
+        # Toggle back to button mode
+        if self.is_search_mode:
+            self.toggle_search_mode()
+
+    def handle_focus_out(self, event):
+        """Handle the focus out event with a small delay to allow clicks to register."""
+        if self.is_search_mode:
+            # Schedule the toggle after a short delay (75ms)
+            # This delay prevents interference with click events
+            self.master.after(75, self.toggle_search_mode)
 
     def open_child_window(self, rec, action):
         """Open a modal child window with 'OK' and 'Cancel' buttons."""
