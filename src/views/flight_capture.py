@@ -14,7 +14,7 @@ class FlightCapture(tk.Toplevel):
         self.title(f"{action} Flight Record")
         self.geometry("550x500")
         self.resizable(False, False)
-        
+
         # Make it modal
         self.transient()
         self.grab_set()
@@ -31,20 +31,21 @@ class FlightCapture(tk.Toplevel):
         self.client_names.append("-- Please Select --")
         for c in self.rec_man.clients:
             self.client_names.append(c.name)
-        
+
         self.airline_names.append("-- Please Select --")
         for c in self.rec_man.airlines:
             self.airline_names.append(c.company_name)
-        
+
         # Create interface
         self.setup_interface()
 
         # Bind data
         self.bind_rec()
-        
+
         # Center the window
         self.center_window()
-    
+
+
     def center_window(self):
         """Center the window on the screen."""
         self.update_idletasks()
@@ -53,27 +54,29 @@ class FlightCapture(tk.Toplevel):
         x = (self.winfo_screenwidth() // 2) - (width // 2)
         y = (self.winfo_screenheight() // 2) - (height // 2)
         self.geometry(f'{width}x{height}+{x}+{y}')
-    
-    def setup_interface(self):        
+
+
+    def setup_interface(self):
+        """Set up screen layout."""
         # Main content frame
         main_frame = ttk.Frame(self)
         main_frame.pack(fill=tk.BOTH, expand=True)
-        
+
         # Header
         header_frame = ttk.Frame(main_frame, padding=(15, 10))
         header_frame.pack(fill=tk.X)
-        
+
         header_label = ttk.Label(
             header_frame,
             text=f"{self.action} Flight", 
             font=(12)
         )
         header_label.pack(anchor=tk.W)
-        
+
         # Separator after header
         sep = ttk.Separator(main_frame, orient='horizontal')
         sep.pack(fill='x')
-        
+
         # Frame for content controls
         content_frame = ttk.Frame(main_frame, padding=(20, 15))
         content_frame.pack(fill=tk.BOTH, expand=True)
@@ -81,7 +84,7 @@ class FlightCapture(tk.Toplevel):
         # Client_ID
         lbl_client_id = ttk.Label(content_frame, text="Client ID:", width=15, anchor="w")
         lbl_client_id.grid(row=0,column=0, padx=(50,0), sticky="w")
-        
+
         self.txt_client_id = ttk.Entry(content_frame, width=30)
         #self.txt_client_id.grid(row=0, column=1, padx=5, pady=5, sticky="we")
 
@@ -91,7 +94,7 @@ class FlightCapture(tk.Toplevel):
         # Airline_ID
         lbl_airline_id = ttk.Label(content_frame, text="Airline ID:", width=15, anchor="w")
         lbl_airline_id.grid(row=1,column=0, padx=(50,0), sticky="w")
-        
+
         self.txt_airline_id = ttk.Entry(content_frame, width=30)
         #self.txt_airline_id.grid(row=1, column=1, padx=5, pady=5, sticky="we")
 
@@ -101,7 +104,7 @@ class FlightCapture(tk.Toplevel):
         # Date
         lbl_date = ttk.Label(content_frame, text="Date:", width=15, anchor="nw")
         lbl_date.grid(row=2,column=0, padx=(50,0), sticky="nw")
-        
+
         dt = datetime.now()
         self.txt_date = Calendar(content_frame, selectmode="day", year=dt.year, month=dt.month, day=dt.day)
         self.txt_date.grid(row=2, column=1, padx=5, pady=5, sticky="we")
@@ -109,7 +112,7 @@ class FlightCapture(tk.Toplevel):
         # Time
         lbl_date = ttk.Label(content_frame, text="Time:", width=15, anchor="nw")
         lbl_date.grid(row=3,column=0, padx=(50,0), sticky="nw")
-        
+
         self.txt_time = SpinTimePickerModern(content_frame)
         self.txt_time.addAll(constants.HOURS24)  # adds hours clock, minutes and period
         self.txt_time.configureAll(bg="#404040", height=1, fg="#ffffff", font=("Segoe UI", 11), hoverbg="#404040",
@@ -121,14 +124,14 @@ class FlightCapture(tk.Toplevel):
         # Start City
         lbl_start_city = ttk.Label(content_frame, text="Start City:", width=15, anchor="w")
         lbl_start_city.grid(row=4,column=0, padx=(50,0), sticky="w")
-        
+
         self.txt_start_city = ttk.Entry(content_frame, width=30)
         self.txt_start_city.grid(row=4, column=1, padx=5, pady=5, sticky="we")
 
         # End City
         lbl_end_city = ttk.Label(content_frame, text="End City:", width=15, anchor="w")
         lbl_end_city.grid(row=5,column=0, padx=(50,0), sticky="w")
-        
+
         self.txt_end_city = ttk.Entry(content_frame, width=30)
         self.txt_end_city.grid(row=5, column=1, padx=5, pady=5, sticky="we")
 
@@ -169,29 +172,48 @@ class FlightCapture(tk.Toplevel):
     
     def validate(self):
         """Validate the input data before accepting it."""
-        #company_name = self.name_entry.get().strip()
-        
-        #if not company_name:
-        #    messagebox.showerror("Validation Error", "Company Name cannot be empty.")
-        #    self.name_entry.focus_set()
-        #    return False
-        
-        #if len(company_name) > 100:
-        #    messagebox.showerror("Validation Error", "Company Name cannot exceed 100 characters.")
-        #    self.name_entry.focus_set()
-        #    return False
-        
+        try:
+            dt = self.txt_date.selection_get()
+            new_hr = self.txt_time.hours24()
+            new_min = self.txt_time.minutes()
+            new_date = datetime(dt.year, dt.month, dt.day, new_hr, new_min)
+
+            client_name = self.client_select.get()
+            if (client_name is None or client_name == "" or client_name == "-- Please Select --"):
+                messagebox.showerror("Validation failed!", "Please select a valid Client before you continue")
+                return False
+
+            airline_name = self.airline_select.get()
+            if (airline_name is None or airline_name == "" or airline_name == "-- Please Select --"):
+                messagebox.showerror("Validation failed!", "Please select a valid Airline before you continue")
+                return False
+
+            if (new_date < datetime.now()):
+                messagebox.showerror("Validation failed!", "Flight cannot be booked for past dates")
+                return False
+
+            start_city = self.txt_start_city.get().strip()
+            if (start_city is None or start_city == ""):
+                messagebox.showerror("Validation failed!", "Please select a valid Start City before you continue")
+                return False
+
+            end_city = self.txt_end_city.get().strip()
+            if (end_city is None or end_city == ""):
+                messagebox.showerror("Validation failed!", "Please select a valid End City before you continue")
+                return False
+        except Exception as e:
+            messagebox.showerror("Validation failed!", "The record validation process failed. Please make sure all fields are captured.")
+            print(f"Validation failed with exception ({e})")
+            return False
+
         return True
-    
-    # def index_of(self, cbo: ttk.ComboBox, search_val: str):
-    #     #for v in cbo.values()):
 
-
-    #     return 0
-    
 
     def update_rec(self):
         """Update the record with values from the interface."""
+        if (not self.validate()):
+            return
+
         dt = self.txt_date.selection_get()
         new_hr = self.txt_time.hours24()
         new_min = self.txt_time.minutes()
