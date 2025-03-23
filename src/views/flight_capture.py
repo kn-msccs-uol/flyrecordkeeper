@@ -12,7 +12,7 @@ class FlightCapture(tk.Toplevel):
         super().__init__()
 
         self.title(f"{action} Flight Record")
-        self.geometry("550x450")
+        self.geometry("550x500")
         self.resizable(False, False)
         
         # Make it modal
