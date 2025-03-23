@@ -6,13 +6,15 @@ allowing for flexible and consistent searching throughout the application.
 
 This follows the MVC (Model-View-Controller) design pattern where:
 1. Model: Record classes and RecordManager
-2. View: GUI components
-3. Controller: This module - provides generic search capabilities
+2. View: GUI components  
+3. Controller: This module - provides specialised search capabilities
 """
 
+import re
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
 from models.record_manager import RecordManager
+from models.base_record import BaseRecord
 
 
 class SearchController:
@@ -31,201 +33,102 @@ class SearchController:
             record_manager: RecordManager instance, creates a new one if None
         """
         self.record_manager = record_manager or RecordManager()
-    
-    def _generic_search(self, records: List[Dict[str, Any]], **criteria) -> List[Dict[str, Any]]:
+
+    def parse_search_query(self, query: str) -> List[str]:
         """
-        Generic search method that filters records based on multiple criteria.
+        Parse a search query into individual search terms.
         
         Args:
-            records: List of records to search through
-            **criteria: Key-value pairs where key is field name and value is search value
+            query: The search query string
             
         Returns:
-            List of records matching all provided criteria
+            List of individual search terms
         """
-        # If no criteria provided, return all records
-        if not any(v is not None for v in criteria.values()):
-            return records
+        if not query or not query.strip():
+            return []
             
-        results = []
-        
-        for record in records:
-            match = True
-            
-            for field, value in criteria.items():
-                if value is None:
-                    continue  # Skip None values
-                    
-                # Handle ID fields (exact match)
-                if field.endswith('_id') and isinstance(value, int):
-                    if record.get(field) != value:
-                        match = False
-                        break
-                        
-                # Handle string fields (partial match)
-                elif isinstance(value, str) and field in record:
-                    if value.lower() not in str(record.get(field, "")).lower():
-                        match = False
-                        break
-                        
-                # Handle date field
-                elif field == "date" and "date" in record:
-                    record_date = None
-                    
-                    # Convert string date to datetime if needed
-                    if isinstance(record["date"], str):
-                        try:
-                            record_date = datetime.fromisoformat(record["date"])
-                        except ValueError:
-                            match = False
-                            break
-                    else:
-                        record_date = record["date"]
-                        
-                    # Check if dates match (comparing only date part, not time)
-                    if record_date.date() != value.date():
-                        match = False
-                        break
-                        
-                # Handle date range
-                elif field == "date_range" and "date" in record:
-                    start_date, end_date = value
-                    record_date = None
-                    
-                    # Convert string date to datetime if needed
-                    if isinstance(record["date"], str):
-                        try:
-                            record_date = datetime.fromisoformat(record["date"])
-                        except ValueError:
-                            match = False
-                            break
-                    else:
-                        record_date = record["date"]
-                        
-                    # Check if date is in range
-                    if not (start_date <= record_date <= end_date):
-                        match = False
-                        break
-                        
-                # Handle other fields (exact match)
-                elif field in record and record.get(field) != value:
-                    match = False
-                    break
-            
-            if match:
-                results.append(record)
-                
-        return results
+        # Split by commas or spaces and remove empty terms
+        terms = [term.strip() for term in re.split(r'[,\s]+', query) if term.strip()]
+        return terms
     
-    def search_clients(self, client_id: int = None, name: str = None, 
-                       phone_number: str = None) -> List[Dict[str, Any]]:
+    def search_clients(self, search_query: str) -> List[BaseRecord]:
         """
-        Search for clients by ID, name, or phone number.
+        Search for clients matching the given query.
+        
+        The search supports:
+        - Partial matches on client ID, name, country or phone number
+        - Multiple search terms (combined with AND logic)
         
         Args:
-            client_id: Client ID to search for (optional)
-            name: Client name or partial name to search for (optional)
-            phone_number: Phone number or partial number to search for (optional)
+            query: Search query string
             
         Returns:
             List of client records matching the search criteria
         """
-        clients = self.record_manager.get_records_by_type("client")
-        return self._generic_search(
-            clients, 
-            id=client_id,
-            name=name, 
-            phone_number=phone_number
-        )
-    
-    def search_airlines(self, airline_id: int = None, 
-                        company_name: str = None) -> List[Dict[str, Any]]:
+        # Parse the query into search terms
+        search_terms = self.parse_search_query(search_query)
+        
+        # Get all client records
+        all_clients = self.record_manager.get_records_by_type('client')
+        
+        # If no search terms, return all clients
+        if not search_terms:
+            return all_clients
+            
+        # Filter clients based on search terms
+        search_results = all_clients
+        for term in search_terms:
+            # Filter results for this term
+            term_results = []
+            for client in search_results:
+                # Check if term matches ID, name, country or phone number
+                id_match = term in str(client.id)
+                name_match = term.lower() in client.name.lower()
+                country_match = term.lower() in client.country.lower()
+                phone_match = term in str(client.phone_number)
+                
+                if id_match or name_match or country_match or phone_match:
+                    term_results.append(client)
+            search_results = term_results
+            
+        return search_results
+
+    def search_airlines(self, search_query: str) -> List[BaseRecord]:
         """
-        Search for airlines by ID or company name.
+        Search for airlines matching the given query.
+        
+        The search supports:
+        - Partial matches on airline ID or company name
+        - Multiple search terms (combined with AND logic)
         
         Args:
-            airline_id: Airline ID to search for (optional)
-            company_name: Company name or partial name to search for (optional)
+            query: Search query string
             
         Returns:
             List of airline records matching the search criteria
         """
-        airlines = self.record_manager.get_records_by_type("airline")
-        return self._generic_search(
-            airlines, 
-            id=airline_id,
-            company_name=company_name
-        )
-    
-    def search_flights(self, flight_id: int = None, client_id: int = None, 
-                      client_name: str = None, client_phone: str = None,
-                      airline_id: int = None, airline_name: str = None,
-                      date: datetime = None, date_range: tuple = None,
-                      start_city: str = None, end_city: str = None) -> List[Dict[str, Any]]:
-        """
-        Search for flights with comprehensive criteria.
+        # Parse the query into search terms
+        search_terms = self.parse_search_query(search_query)
+
+        # Get all airline records
+        all_airlines = self.record_manager.get_records_by_type('airline')
         
-        Args:
-            flight_id: Flight ID to search for (optional)
-            client_id: Client ID to filter by (optional)
-            client_name: Client name to search for (optional)
-            client_phone: Client phone number to search for (optional)
-            airline_id: Airline ID to filter by (optional)
-            airline_name: Airline company name to search for (optional)
-            date: Exact date to match (optional)
-            date_range: Tuple of (start_date, end_date) to filter by (optional)
-            start_city: Departure city to search for (optional)
-            end_city: Destination city to search for (optional)
+        # If no search terms, return all airlines
+        if not search_terms:
+            return all_airlines
             
-        Returns:
-            List of flight records matching all specified search criteria
-        """
-        # Find clients by name or phone if provided
-        if client_name or client_phone:
-            matching_clients = self.search_clients(
-                name=client_name, 
-                phone_number=client_phone
-            )
+        # Filter airlines based on search terms
+        search_results = all_airlines
+        for term in search_terms:
+            # Filter results for this term
+            term_results = []
+            for airline in search_results:
+                # Check if term matches ID or company name
+                id_match = term in str(airline.id)
+                name_match = term.lower() in airline.company_name.lower()
+
+                if id_match or name_match:
+                    term_results.append(airline)
+            search_results = term_results
             
-            if matching_clients:
-                client_ids = [c["id"] for c in matching_clients]
-                
-                # If specific client ID was also provided, find intersection
-                if client_id and client_id not in client_ids:
-                    return []  # No matches
-                    
-                # Otherwise use the found client IDs
-                client_id = client_ids
-            elif client_name or client_phone:
-                return []  # No matching clients found
-        
-        # Find airlines by name if provided
-        if airline_name:
-            matching_airlines = self.search_airlines(company_name=airline_name)
-            
-            if matching_airlines:
-                airline_ids = [a["id"] for a in matching_airlines]
-                
-                # If specific airline ID was also provided, find intersection
-                if airline_id and airline_id not in airline_ids:
-                    return []  # No matches
-                    
-                # Otherwise use the found airline IDs
-                airline_id = airline_ids
-            elif airline_name:
-                return []  # No matching airlines found
-        
-        # Get all flights
-        flights = self.record_manager.get_records_by_type("flight")
-        
-        # Use generic search with all remaining criteria
-        return self._generic_search(
-            flights,
-            id=flight_id,
-            client_id=client_id,
-            airline_id=airline_id,
-            date=date,
-            date_range=date_range,
-            start_city=start_city,
-            end_city=end_city
-        )
+        return search_results
