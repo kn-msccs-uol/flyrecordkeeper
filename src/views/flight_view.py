@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
-from datetime import date
+from datetime import datetime
 from models import record_manager
 
 from views import flight_capture
@@ -26,26 +26,33 @@ class FlightView(tk.Frame):
         toolbar = ttk.Frame(self.parent)
         toolbar.pack(fill=tk.X)
 
-        label = ttk.Label(toolbar, text="Flight Records", font=('Segoe UI', 11, 'bold'))
+        #label = ttk.Label(toolbar, text="Flight Records", font=(14,'bold'))
+        label = ttk.Label(toolbar, text="Flight Records", font=(14))
         label.pack(pady=5)
 
         # Add a separator
         separator = ttk.Separator(toolbar, orient='horizontal')
         separator.pack(fill='x', pady=(10,0))
 
-        self.add_button = tk.Button(toolbar, text="Add", width=10, command=self.add_item)
+        self.add_button = tk.Button(toolbar, text="Add", font=(12), width=10, command=self.add_item)
         self.add_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.edit_button = tk.Button(toolbar, text="Edit/Update", width=15, command=self.edit_item, state="disabled")
+        self.edit_button = tk.Button(toolbar, text="Edit/Update", font=(12), width=15, command=self.edit_item, state="disabled")
         self.edit_button.pack(side=tk.LEFT, padx=15, pady=5)
 
-        self.delete_button = tk.Button(toolbar, text="Delete", width=10, command=self.delete_item, state="disabled")
+        self.delete_button = tk.Button(toolbar, text="Delete", font=(12), width=10, command=self.delete_item, state="disabled")
         self.delete_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.search_button = tk.Button(toolbar, text="Search", width=10, command=self.search_item)
+        self.search_button = tk.Button(toolbar, text="Search", font=(12), width=10, command=self.search_item)
         self.search_button.pack(side=tk.LEFT, padx=5, pady=5)
 
     def create_treeview(self):
+        # Define a style for the Treeview
+        #style = ttk.Style()
+        #style.configure('Treeview', font=(12))
+        # Configure the font for Treeview items
+        #style.configure('Treeview.Heading', font=(12, 'bold'))
+                        
         """Create the treeview widget to display data."""
         treeview_frame = tk.Frame(self.parent)
         treeview_frame.pack(fill=tk.BOTH, expand=True)
@@ -88,7 +95,7 @@ class FlightView(tk.Frame):
 
     def add_item(self):
         """Handle adding a new item by opening a child window."""
-        rec = self.rec_man.create_flight(0, 0, date.today(), "", "")
+        rec = self.rec_man.create_flight(0, 0, datetime.now(), "", "")
 
         self.open_child_window(rec, "Add")
 
@@ -161,17 +168,11 @@ class FlightView(tk.Frame):
     def open_child_window(self, rec, action):
         """Open a modal child window with 'OK' and 'Cancel' buttons."""
         rec = self.resolve_references(rec)
-        print('rec in from view: ')
-        print(rec.to_dict())
         result, output = flight_capture.FlightCapture(self.rec_man, rec, action).show()
-
-        print('rec out from view: ')
-        print(output.to_dict())
 
         if (result):
             if (action == "Add"):
                 self.rec_man.flights.append(output)
-                #self.treeview.insert("", "end", values=(output.id, output.client_id, output.airline_id, output.date, output.start_city, output.end_city))
                 self.display_rec(output, "insert")
             elif (action == "Edit"):
                 for a in self.rec_man.flights:
@@ -182,6 +183,5 @@ class FlightView(tk.Frame):
                         a.start_city = output.start_city
                         a.end_city = output.end_city
                         self.display_rec(output, "update")
-                        #self.treeview.item(self.selected_item, text="", values=(output.id, output.client_id, output.airline_id, output.date, output.start_city, output.end_city))
 
         self.rec_man.save_to_file()

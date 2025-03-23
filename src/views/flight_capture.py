@@ -1,15 +1,18 @@
 import tkinter as tk
+from datetime import datetime
 from tkinter import ttk, messagebox
-from tkcalendar import DateEntry
-from datetime import date
+from tkcalendar import Calendar
+from tktimepicker import SpinTimePickerModern
+from tktimepicker import constants
 from models import record_manager
+from models import flight_record
 
 class FlightCapture(tk.Toplevel):
-    def __init__(self, rec_man, rec, action="Add"):
+    def __init__(self, rec_man: record_manager.RecordManager, rec: flight_record.FlightRecord, action="Add"):
         super().__init__()
 
         self.title(f"{action} Flight Record")
-        self.geometry("550x300")
+        self.geometry("550x450")
         self.resizable(False, False)
         
         # Make it modal
@@ -63,7 +66,7 @@ class FlightCapture(tk.Toplevel):
         header_label = ttk.Label(
             header_frame,
             text=f"{self.action} Flight", 
-            font=('Segoe UI', 11, 'bold')
+            font=(12)
         )
         header_label.pack(anchor=tk.W)
         
@@ -95,26 +98,39 @@ class FlightCapture(tk.Toplevel):
         self.airline_select = ttk.Combobox(content_frame, values=self.airline_names, width=30)
         self.airline_select.grid(row=1, column=1, padx=5, pady=5, sticky="we")
 
-        # Date/Time
-        lbl_date = ttk.Label(content_frame, text="Date and Time:", width=15, anchor="w")
-        lbl_date.grid(row=2,column=0, padx=(50,0), sticky="w")
+        # Date
+        lbl_date = ttk.Label(content_frame, text="Date:", width=15, anchor="nw")
+        lbl_date.grid(row=2,column=0, padx=(50,0), sticky="nw")
         
-        self.txt_date = ttk.Entry(content_frame, width=30) #DateEntry(content_frame, selectmode="day", year=dt.year, month=dt.month, day=dt.day) 
+        dt = datetime.now()
+        self.txt_date = Calendar(content_frame, selectmode="day", year=dt.year, month=dt.month, day=dt.day)
         self.txt_date.grid(row=2, column=1, padx=5, pady=5, sticky="we")
+
+        # Time
+        lbl_date = ttk.Label(content_frame, text="Time:", width=15, anchor="nw")
+        lbl_date.grid(row=3,column=0, padx=(50,0), sticky="nw")
+        
+        self.txt_time = SpinTimePickerModern(content_frame)
+        self.txt_time.addAll(constants.HOURS24)  # adds hours clock, minutes and period
+        self.txt_time.configureAll(bg="#404040", height=1, fg="#ffffff", font=("Segoe UI", 11), hoverbg="#404040",
+                                hovercolor="#d73333", clickedbg="#2e2d2d", clickedcolor="#d73333")
+        self.txt_time.configure_separator(bg="#404040", fg="#ffffff")
+        self.txt_time.grid(row=3, column=1, padx=5, pady=5, sticky="we")
+
 
         # Start City
         lbl_start_city = ttk.Label(content_frame, text="Start City:", width=15, anchor="w")
-        lbl_start_city.grid(row=3,column=0, padx=(50,0), sticky="w")
+        lbl_start_city.grid(row=4,column=0, padx=(50,0), sticky="w")
         
         self.txt_start_city = ttk.Entry(content_frame, width=30)
-        self.txt_start_city.grid(row=3, column=1, padx=5, pady=5, sticky="we")
+        self.txt_start_city.grid(row=4, column=1, padx=5, pady=5, sticky="we")
 
         # End City
         lbl_end_city = ttk.Label(content_frame, text="End City:", width=15, anchor="w")
-        lbl_end_city.grid(row=4,column=0, padx=(50,0), sticky="w")
+        lbl_end_city.grid(row=5,column=0, padx=(50,0), sticky="w")
         
         self.txt_end_city = ttk.Entry(content_frame, width=30)
-        self.txt_end_city.grid(row=4, column=1, padx=5, pady=5, sticky="we")
+        self.txt_end_city.grid(row=5, column=1, padx=5, pady=5, sticky="we")
 
         # Toolbar with OK and Cancel buttons
         toolbar = ttk.Frame(main_frame, padding=(10, 10))
@@ -131,7 +147,9 @@ class FlightCapture(tk.Toplevel):
         """Bind record data to the interface elements."""
         self.txt_client_id.insert(0, self.rec.client_id)
         self.txt_airline_id.insert(0, self.rec.airline_id)
-        self.txt_date.insert(0, self.rec.date)
+        self.txt_date.selection_set(self.rec.date.date())
+        self.txt_time.set24Hrs(self.rec.date.hour)
+        self.txt_time.setMins(self.rec.date.minute)
         self.txt_start_city.insert(0, self.rec.start_city)
         self.txt_end_city.insert(0, self.rec.end_city)
         
@@ -174,11 +192,16 @@ class FlightCapture(tk.Toplevel):
 
     def update_rec(self):
         """Update the record with values from the interface."""
+        dt = self.txt_date.selection_get()
+        new_hr = self.txt_time.hours24()
+        new_min = self.txt_time.minutes()
+        new_date = datetime(dt.year, dt.month, dt.day, new_hr, new_min)
+
         self.rec.client_id = self.txt_client_id.get().strip()
         self.rec.client_name = self.client_select.get()
         self.rec.airline_id = self.txt_airline_id.get().strip()
         self.rec.airline_name = self.airline_select.get()
-        self.rec.date = self.txt_date.get().strip()
+        self.rec.date = new_date
         self.rec.start_city = self.txt_start_city.get().strip()
         self.rec.end_city = self.txt_end_city.get().strip()
 
@@ -208,9 +231,6 @@ class FlightCapture(tk.Toplevel):
         if self.validate():
             self.update_rec()
             self.result = True
-
-            print('rec from capture')
-            print(self.rec.to_dict())
 
             # Close the child window after the action
             self.destroy()
