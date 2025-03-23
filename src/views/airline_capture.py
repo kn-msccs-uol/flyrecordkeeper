@@ -8,7 +8,7 @@ class AirlineCapture(tk.Toplevel):
         
         # Set window properties
         self.title(f"{action} Airline Record")
-        self.geometry("475x225")
+        self.geometry("400x215")
         self.resizable(False, False)
         
         # Make it modal
@@ -34,7 +34,7 @@ class AirlineCapture(tk.Toplevel):
         else:  # Linux/Unix
             system_font = "DejaVu Sans"
 
-        self.default_font.configure(family=system_font, size=12)
+        self.default_font.configure(family=system_font, size=10)
 
         # Configure bold font
         self.bold_font = tkfont.Font(font=self.default_font)
@@ -102,10 +102,10 @@ class AirlineCapture(tk.Toplevel):
         button_frame.pack(fill=tk.X)
         
         # OK and Cancel buttons
-        cancel_button = tk.Button(button_frame, text="Cancel", width=10, command=self.cancel)
+        cancel_button = ttk.Button(button_frame, text="Cancel", width=10, command=self.cancel)
         cancel_button.pack(side=tk.RIGHT, padx=5)
         
-        ok_button = tk.Button(button_frame, text="OK", width=10, command=self.ok)
+        ok_button = ttk.Button(button_frame, text="OK", width=10, command=self.ok)
         ok_button.pack(side=tk.RIGHT, padx=5)
     
     def bind_rec(self):
