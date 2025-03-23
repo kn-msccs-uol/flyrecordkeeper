@@ -10,7 +10,7 @@ class ClientCapture(tk.Toplevel):
 
         # Set window properties across different diplay resolutions
         self.title(f"{action} Client Record")
-        self.geometry("500x525")
+        self.geometry("500x475")
         self.resizable(False, False)
 
         # Make it modal
@@ -36,7 +36,7 @@ class ClientCapture(tk.Toplevel):
         else:  # Linux/Unix
             system_font = "DejaVu Sans"
 
-        self.default_font.configure(family=system_font, size=12)
+        self.default_font.configure(family=system_font, size=10)
 
         # Configure bold font
         self.bold_font = tkfont.Font(font=self.default_font)
@@ -147,10 +147,10 @@ class ClientCapture(tk.Toplevel):
         button_frame.pack(fill=tk.X)
         
         # OK and Cancel buttons
-        cancel_button = tk.Button(button_frame, text="Cancel", width=10, command=self.cancel)
+        cancel_button = ttk.Button(button_frame, text="Cancel", width=10, command=self.cancel)
         cancel_button.pack(side=tk.RIGHT, padx=5)
         
-        ok_button = tk.Button(button_frame, text="OK", width=10, command=self.ok)
+        ok_button = ttk.Button(button_frame, text="OK", width=10, command=self.ok)
         ok_button.pack(side=tk.RIGHT, padx=5)
 
     def bind_rec(self):
