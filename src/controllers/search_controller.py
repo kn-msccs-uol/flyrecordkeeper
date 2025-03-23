@@ -132,3 +132,73 @@ class SearchController:
             search_results = term_results
             
         return search_results
+    
+    def search_flights(self, search_query: str) -> List[BaseRecord]:
+        """
+        Search for flights matching the given query.
+        
+        The search supports:
+        - Partial matches on flight ID, client ID, client name, client phone number, airline ID,
+          airline name, date, start city, or end city
+        - Multiple search terms (combined with AND logic)
+        
+        Args:
+            query: Search query string
+            
+        Returns:
+            List of flight records matching the search criteria
+        """
+        # Parse the query into search terms
+        search_terms = self.parse_search_query(search_query)
+        
+        # Get all flight records
+        all_flights = self.record_manager.get_records_by_type('flight')
+        
+        # If no search terms, return all flights
+        if not search_terms:
+            return all_flights
+            
+        # Filter flights based on search terms
+        search_results = all_flights
+        for term in search_terms:
+            # Filter results for this term
+            term_results = []
+            for flight in search_results:
+                # Check if term matches flight ID, client ID, client name, client phone number,
+                # airline ID, airline name, start city, or end city
+                id_match = term in str(flight.id)
+                client_id_match = term in str(flight.client_id)
+                airline_id_match = term in str(flight.airline_id)
+                start_city_match = term.lower() in flight.start_city.lower()
+                end_city_match = term.lower() in flight.end_city.lower()
+
+                # Also check client and airline name matches
+                client_name_match = False
+                try:
+                    client = self.record_manager.get_record_by_id(flight.client_id, "client")
+                    client_name_match = term.lower() in client.name.lower()
+                except:
+                    pass
+
+                airline_name_match = False
+                try:
+                    airline = self.record_manager.get_record_by_id(flight.airline_id, "airline")
+                    airline_name_match = term.lower() in airline.company_name.lower()
+                except:
+                    pass
+                
+                # Also check date matches (partial string in ISO format)
+                date_match = False
+                if hasattr(flight, 'date'):
+                    try:
+                        date_str = flight.date.isoformat()
+                        date_match = term in date_str
+                    except:
+                        pass
+                
+                if (id_match or client_id_match or client_name_match or airline_id_match or 
+                    airline_name_match or start_city_match or end_city_match or date_match):
+                    term_results.append(flight)
+            search_results = term_results
+            
+        return search_results
