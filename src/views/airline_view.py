@@ -228,8 +228,10 @@ class AirlineView(ttk.Frame):
         row_id = int(item_data['values'][0])
         record_name = str(item_data['values'][1])
 
+        # Truncate long names to prevent status bar overflow
+        old_display = self.truncate_name(record_name)
 
-        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete airline '{record_name}'?"):
+        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete airline '{old_display}'?"):
             try:
                 if not item_data or len(item_data['values']) == 0:
                     return
@@ -237,10 +239,14 @@ class AirlineView(ttk.Frame):
                 if (self.rec_man.delete_record(row_id, "airline")):
                     self.treeview.delete(self.selected_item)
                     messagebox.showinfo("Delete Successful", "Airline deleted successfully!")
-                    self.update_status(f"Airline '{record_name}' (ID: {row_id}) has been successfully deleted")
+                    self.update_status(f"Airline '{old_display}' (ID: {row_id}) has been successfully deleted")
             except Exception as e:
                 messagebox.showerror("Error", str(e))
                 self.update_status(f"Error deleting airline: {str(e)}")
+    
+    def truncate_name(self, name, max_length=30):
+        """Truncate a string if it exceeds the maximum length."""
+        return (name[:max_length] + "...") if len(name) > max_length else name
 
     def search_item(self):
         """
@@ -318,8 +324,10 @@ class AirlineView(ttk.Frame):
 
     def open_child_window(self, rec, action):
         """Open a modal child window with 'OK' and 'Cancel' buttons."""
-        # Store original name
-        original_name = rec.company_name
+        # Store original name if editing
+        original_name = None
+        if action == "Edit":
+            original_name = rec.company_name
         
         result, output = airline_capture.AirlineCapture(rec, action).show()
 
@@ -327,7 +335,11 @@ class AirlineView(ttk.Frame):
             if (action == "Add"):
                 self.rec_man.airlines.append(output)
                 self.treeview.insert("", "end", values=(output.id, output.company_name))
-                self.update_status(f"New airline '{output.company_name}' (ID: {output.id}) has been successfully added")
+
+                # Truncate long names to prevent status bar overflow
+                new_display = self.truncate_name(output.company_name)
+
+                self.update_status(f"New airline '{new_display}' (ID: {output.id}) has been successfully added")
             elif (action == "Edit"):
                 for a in self.rec_man.airlines:
                     if a.id == output.id:
@@ -335,10 +347,10 @@ class AirlineView(ttk.Frame):
                         self.treeview.item(self.selected_item, text="", values=(output.id, output.company_name))
 
                         # Truncate long names to prevent status bar overflow
-                        MAX_LENGTH = 30
-                        old_display = (original_name[:MAX_LENGTH] + "...") if len(original_name) > MAX_LENGTH else original_name
-                        new_display = (output.company_name[:MAX_LENGTH] + "...") if len(output.company_name) > MAX_LENGTH else output.company_name
+                        old_display = self.truncate_name(original_name)
+                        new_display = self.truncate_name(output.company_name)
 
-                        self.update_status(f"Airline (ID: {output.id}) successfully updated: '{old_display}' ⟶ '{new_display}'")
+                        if output.company_name != original_name:
+                            self.update_status(f"Airline (ID: {output.id}) successfully updated: '{old_display}' ⟶ '{new_display}'")
 
         self.rec_man.save_to_file()
