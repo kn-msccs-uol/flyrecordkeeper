@@ -53,7 +53,7 @@ class TestAirlineCapture(unittest.TestCase):
         short_name = "A"
         self.capture.name_entry.delete(0, tk.END)
         self.capture.name_entry.insert(0, short_name)
-        self.assertTrue(self.capture.validate())
+        self.assertFalse(self.capture.validate())
 
     #Test functionality 'ok' button
     def test_ok_action(self):
