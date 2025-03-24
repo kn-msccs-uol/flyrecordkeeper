@@ -3,8 +3,6 @@ from tkinter import ttk
 from tkinter import messagebox
 from datetime import datetime
 
-from models import record_manager
-
 from views import flight_capture
 
 class FlightView(tk.Frame):
