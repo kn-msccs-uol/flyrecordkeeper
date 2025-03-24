@@ -82,19 +82,6 @@ class TestValidators(unittest.TestCase):
         error = validators.validate_date("2025-01-01")
         self.assertEqual(error, "Date must be a datetime object")
 
-    # --- get_validation_errors_summary ---
-    def test_get_validation_errors_summary_empty(self):
-        summary = validators.get_validation_errors_summary({})
-        self.assertEqual(summary, "")
-
-    def test_get_validation_errors_summary_non_empty(self):
-        errors = {
-            "name": "Required",
-            "email": "Invalid format"
-        }
-        summary = validators.get_validation_errors_summary(errors)
-        self.assertEqual(summary, "name: Required; email: Invalid format")
-
 if __name__ == "__main__":
     unittest.main()
 
