@@ -12,10 +12,13 @@ class FlightView(tk.Frame):
     rec_man = None
     selected_item = None
 
-    def __init__(self, parent):
+    def __init__(self, parent, update_status=None):
         super(FlightView, self).__init__()
 
         self.parent = parent
+
+        # Store the update_status function
+        self.update_status = update_status or (lambda msg: None)
 
         # Detect and configure system fonts
         import platform
@@ -284,7 +287,7 @@ class FlightView(tk.Frame):
         item_data = self.treeview.item(self.selected_item)
         row_id = int(item_data['values'][0])
 
-        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete 'Flight ID No. {row_id}'?"):
+        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete 'Flight ID: {row_id}'?"):
             try:
                 if not item_data or len(item_data['values']) == 0:
                     return
@@ -292,8 +295,10 @@ class FlightView(tk.Frame):
                 if (self.rec_man.delete_record(row_id, "flight")):
                     self.treeview.delete(self.selected_item)
                     messagebox.showinfo("Delete Successful", "Flight deleted successfully!")
+                    self.update_status(f"'Flight ID: {row_id}' has been successfully deleted")
             except Exception as e:
                 messagebox.showerror("Error", str(e))
+                self.update_status(f"Error deleting flight: {str(e)}")
 
     def search_item(self):
         """
@@ -396,6 +401,14 @@ class FlightView(tk.Frame):
 
     def open_child_window(self, rec, action):
         """Open a modal child window with 'OK' and 'Cancel' buttons."""
+        # Store original name if editing
+        if action == "Edit":
+            original_client_id = rec.client_id
+            original_airline_id = rec.airline_id
+            original_date = rec.date
+            original_start_city = rec.start_city
+            original_end_city = rec.end_city
+
         rec = self.resolve_references(rec)
         result, output = flight_capture.FlightCapture(self.rec_man, rec, action).show()
 
@@ -403,6 +416,8 @@ class FlightView(tk.Frame):
             if (action == "Add"):
                 self.rec_man.flights.append(output)
                 self.display_rec(output, "insert")
+
+                self.update_status(f"New flight (ID: {output.id}) has been successfully added")
             elif (action == "Edit"):
                 for a in self.rec_man.flights:
                     if a.id == output.id:
@@ -412,5 +427,25 @@ class FlightView(tk.Frame):
                         a.start_city = output.start_city
                         a.end_city = output.end_city
                         self.display_rec(output, "update")
+
+                        # Check which fields have changed
+                        original_values = [
+                            original_client_id, original_airline_id, original_airline_id, 
+                            original_date, original_start_city, original_end_city
+                        ]
+                        new_values = [
+                            output.client_id, output.airline_id, output.airline_id, 
+                            output.date, output.start_city, output.end_city
+                            ]
+                        
+                        # Get a list of changed fields
+                        changed_fields = [i for i, (orig, new) in enumerate(zip(original_values, new_values)) if orig != new]
+
+                        if not changed_fields:
+                            # No fields were changed, no status update
+                            pass
+
+                        else:
+                            self.update_status(f"'Flight ID: {output.id}' has been successfully updated")
 
         self.rec_man.save_to_file()
