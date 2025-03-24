@@ -8,6 +8,8 @@ from views.airline_view import AirlineView
 from views.client_view import ClientView
 from views.flight_view import FlightView
 
+from models import record_manager
+
 class App(tk.Tk):
     """
     Main application window for FlyRecordKeeper.
@@ -53,6 +55,9 @@ class App(tk.Tk):
         
         # Set up the main application layout
         self.setup_layout()
+        
+        # Initialize database manager
+        self.rec_man = record_manager.RecordManager()
         
         # Initialize tracking variables
         self.current_view = None
@@ -243,15 +248,15 @@ class App(tk.Tk):
             
             # Load the appropriate view
             if content_type == "Manage Clients":
-                view = ClientView(self.content_frame, self.update_status)
+                view = ClientView(self.content_frame, self.rec_man, self.update_status)
                 self.highlight_active_nav("Manage Clients")
                 
             elif content_type == "Manage Airlines":
-                view = AirlineView(self.content_frame, self.update_status)
+                view = AirlineView(self.content_frame, self.rec_man, self.update_status)
                 self.highlight_active_nav("Manage Airlines")
                 
             elif content_type == "Manage Flights":
-                view = FlightView(self.content_frame, self.update_status)
+                view = FlightView(self.content_frame, self.rec_man, self.update_status)
                 self.highlight_active_nav("Manage Flights")
                 
             else:
@@ -290,6 +295,6 @@ class App(tk.Tk):
     def on_closing(self):
         """Handle application closing with confirmation."""
         if messagebox.askokcancel("Exit", "Are you sure you want to exit?"):
-            # IMPLEMENT on-close save operations HERE
+            self.rec_man.save_to_file()
             self.update_status("Saving data...")
             self.destroy()

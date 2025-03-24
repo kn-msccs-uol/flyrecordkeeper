@@ -12,7 +12,7 @@ class FlightView(tk.Frame):
     rec_man = None
     selected_item = None
 
-    def __init__(self, parent, update_status=None):
+    def __init__(self, parent, rec_man, update_status=None):
         super(FlightView, self).__init__()
 
         self.parent = parent
@@ -43,7 +43,7 @@ class FlightView(tk.Frame):
         self.bold_font = tkfont.Font(font=self.default_font)
         self.bold_font.configure(weight="bold", size=14)
 
-        self.rec_man = record_manager.RecordManager()
+        self.rec_man = rec_man
 
         self.setup_button_styles
         self.create_toolbar()
