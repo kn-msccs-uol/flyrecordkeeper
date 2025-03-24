@@ -35,6 +35,18 @@ class App(tk.Tk):
             
         except Exception as e:
             print(f"Error setting application icon: {e}")
+
+        # Detect and configure system fonts
+        import platform
+
+        system = platform.system()
+
+        if system == "Windows":
+            self.system_font = "Segoe UI"
+        elif system == "Darwin":  # macOS
+            self.system_font = "Helvetica Neue"
+        else:  # Linux/Unix
+            self.system_font = "DejaVu Sans"
         
         # Apply styling for a more modern appearance
         self.setup_styles()
@@ -83,8 +95,9 @@ class App(tk.Tk):
             self.style.theme_use('clam')
         
         # Configure styles for different widget types
-        self.style.configure('NavButton.TButton', padding=8, font=('Segoe UI', 10))
-        self.style.configure('Header.TLabel', font=('Segoe UI', 12, 'bold'))
+        self.style.configure('NavLabel.TLabel', font=(self.system_font, 12, 'italic'))
+        self.style.configure('NavButton.TButton', padding=8, font=(self.system_font, 11))
+        self.style.configure('Header.TLabel', font=('Georgia', 16, 'bold', 'italic'))
         self.style.configure('StatusBar.TLabel', padding=2, relief=tk.SUNKEN)
     
     def setup_layout(self):
@@ -130,7 +143,7 @@ class App(tk.Tk):
         separator1.pack(fill='x', pady=5)
         
         # Navigation section
-        nav_label = ttk.Label(self.menu_frame, text="Navigation")
+        nav_label = ttk.Label(self.menu_frame, text="Navigation", style='NavLabel.TLabel')
         nav_label.pack(anchor='w', pady=5)
         
         # Add a separator
