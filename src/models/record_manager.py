@@ -9,7 +9,7 @@ This project uses a "Structured Dictionaries with OO Benefits" approach where:
 2. Classes provide structure, validation, and object-oriented functionality
 3. The system maintains the benefits of both approaches
 """
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from datetime import datetime
 from operator import length_hint
 
@@ -21,9 +21,6 @@ from models.base_record import BaseRecord
 
 # Import the file handler
 from utils.file_handler import load_records, save_records
-
-# Import the validator
-from utils.validators import get_validation_errors_summary
 
 
 class RecordManager:
@@ -278,7 +275,6 @@ class RecordManager:
         Returns:
             List of record dictionaries of the specified type
         """
-        #return [record for record in self.records if record.get("type") == record_type]
         if record_type == "client":
             return self.clients
         elif record_type == "airline":
@@ -327,113 +323,6 @@ class RecordManager:
         all_recs.append(self.flights)
 
         return all_recs
-    
-    def create_record(self, record_type: str, record_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Create a new record with validation and relationship checking.
-        
-        Args:
-            record_type: Type of record to create ('client', 'airline', or 'flight')
-            record_data: Dictionary containing the record data
-            
-        Returns:
-            Newly created record dictionary
-            
-        Raises:
-            ValueError: If validation fails
-        """
-        
-        # Generate a new ID
-        record_id = self.get_next_id(record_type)
-        record_data["id"] = record_id
-        record_data["type"] = record_type
-        
-        # Handle date conversion for flight records
-        if record_type == "flight" and "date" in record_data and isinstance(record_data["date"], str):
-            try:
-                record_data["date"] = datetime.fromisoformat(record_data["date"])
-            except ValueError:
-                raise ValueError("Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)")
-        
-        # Validate based on record type
-        errors = {}
-        validator_class = self._get_validator_for_type(record_type)
-        if record_type == "flight":
-            errors = validator_class.validate(record_data, self.flights)
-        else:
-            errors = validator_class.validate(record_data)
-        
-        # If there are validation errors, raise an exception
-        if errors:
-            error_msg = get_validation_errors_summary(errors)
-            raise ValueError(f"Validation errors: {error_msg}")
-        
-        # Create the record
-        self.records.append(record_data)
-        
-        # Save to file
-        self.save_to_file()
-        
-        return record_data
-    
-    def update_record(self, record_id: int, updated_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Update a record with validation and relationship checking.
-        
-        Args:
-            record_id: ID of the record to update
-            updated_data: Dictionary containing the fields to update
-            
-        Returns:
-            Updated record dictionary if successful
-            
-        Raises:
-            ValueError: If validation fails or if update would break referential integrity
-        """
-        
-        # Find the record
-        record = self.get_record_by_id(record_id)
-        if not record:
-            raise ValueError(f"Record with ID {record_id} not found")
-        
-        # Create a copy of the record with updates
-        updated_record = record.copy()
-        updated_record.update(updated_data)
-        
-        # Get record type
-        record_type = record.get("type")
-        
-        # Handle date conversion for flight records
-        if record_type == "flight" and "date" in updated_data and isinstance(updated_data["date"], str):
-            try:
-                updated_data["date"] = datetime.fromisoformat(updated_data["date"])
-                updated_record["date"] = updated_data["date"]
-            except ValueError:
-                raise ValueError("Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)")
-        
-        # Validate based on record type
-        errors = {}
-        validator_class = self._get_validator_for_type(record_type)
-        if record_type == "flight":
-            errors = validator_class.validate(updated_data, self.records)
-        else:
-            errors = validator_class.validate(updated_data)
-        
-        # If there are validation errors, raise an exception
-        if errors:
-            error_msg = get_validation_errors_summary(errors)
-            raise ValueError(f"Validation errors: {error_msg}")
-        
-        # Update the record in the records list
-        for i, r in enumerate(self.records):
-            if r.get("id") == record_id:
-                self.records[i] = updated_record
-                break
-        
-        # Save to file
-        self.save_to_file()
-        
-        return updated_record
     
     def check_can_delete(self, record_id: int, record_type: str) -> tuple[bool, str]:
         """
