@@ -11,10 +11,13 @@ class ClientView(ttk.Frame):
     rec_man = None
     selected_item = None
 
-    def __init__(self, parent):
+    def __init__(self, parent, update_status=None):
         super(ClientView, self).__init__()
 
         self.parent = parent
+
+        # Store the update_status function
+        self.update_status = update_status or (lambda msg: None)
 
         # Detect and configure system fonts
         import platform
@@ -287,8 +290,10 @@ class ClientView(ttk.Frame):
         row_id = int(item_data['values'][0])
         record_name = str(item_data['values'][1])
 
+        # Truncate long names to prevent status bar overflow
+        old_display = self.truncate_name(record_name)
 
-        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete client '{record_name}'?"):
+        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete client '{old_display}'?"):
             try:
                 if not item_data or len(item_data['values']) == 0:
                     return
@@ -296,8 +301,14 @@ class ClientView(ttk.Frame):
                 if (self.rec_man.delete_record(row_id, "client")):
                     self.treeview.delete(self.selected_item)
                     messagebox.showinfo("Delete Successful", "Client deleted successfully!")
+                    self.update_status(f"Client '{old_display}' (ID: {row_id}) has been successfully deleted")
             except Exception as e:
                 messagebox.showerror("Error", str(e))
+                self.update_status(f"Error deleting client: {str(e)}")
+
+    def truncate_name(self, name, max_length=30):
+        """Truncate a string if it exceeds the maximum length."""
+        return (name[:max_length] + "...") if len(name) > max_length else name
 
     def search_item(self):
         """
@@ -378,6 +389,11 @@ class ClientView(ttk.Frame):
 
     def open_child_window(self, rec, action):
         """Open a modal child window with 'OK' and 'Cancel' buttons."""
+        # Store original name if editing
+        original_name = None
+        if action == "Edit":
+            original_name = rec.name
+
         result, output = client_capture.ClientCapture(rec, action).show()
 
         if (result):
@@ -386,6 +402,11 @@ class ClientView(ttk.Frame):
                 self.treeview.insert("", "end", values=(output.id, output.name, output.address_line1,
                                                         output.address_line2, output.address_line3, output.city,
                                                         output.state, output.zip_code, output.country, output.phone_number))
+                
+                # Truncate long names to prevent status bar overflow
+                new_display = self.truncate_name(output.name)
+                
+                self.update_status(f"New client '{new_display}' (ID: {output.id}) has been successfully added")
             elif (action == "Edit"):
                 for a in self.rec_man.clients:
                     if a.id == output.id:
@@ -401,5 +422,14 @@ class ClientView(ttk.Frame):
                         self.treeview.item(self.selected_item, text="", values=(output.id, output.name, output.address_line1,
                                                                                 output.address_line2, output.address_line3, output.city,
                                                                                 output.state, output.zip_code, output.country, output.phone_number))
+                        
+                        # Truncate long names to prevent status bar overflow
+                        old_display = self.truncate_name(original_name)
+                        new_display = self.truncate_name(output.name)
+
+                        if old_display == new_display:
+                            self.update_status(f"Client '{new_display}' (ID: {output.id}) has been successfully updated")
+                        else:
+                            self.update_status(f"Client (ID: {output.id})'s name has been successfully updated: '{old_display}' ⟶ '{new_display}'")
 
         self.rec_man.save_to_file()

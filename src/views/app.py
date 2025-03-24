@@ -243,7 +243,7 @@ class App(tk.Tk):
             
             # Load the appropriate view
             if content_type == "Manage Clients":
-                view = ClientView(self.content_frame)
+                view = ClientView(self.content_frame, self.update_status)
                 self.highlight_active_nav("Manage Clients")
                 
             elif content_type == "Manage Airlines":
