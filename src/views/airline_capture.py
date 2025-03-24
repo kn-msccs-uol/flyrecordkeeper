@@ -124,6 +124,11 @@ class AirlineCapture(tk.Toplevel):
             self.name_entry.focus_set()
             return False
         
+        if len(company_name) < 2:
+            messagebox.showerror("Validation Error", "Company Name cannot must exceed 2 characters.")
+            self.name_entry.focus_set()
+            return False
+        
         if len(company_name) > 100:
             messagebox.showerror("Validation Error", "Company Name cannot exceed 100 characters.")
             self.name_entry.focus_set()
