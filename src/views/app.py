@@ -247,7 +247,7 @@ class App(tk.Tk):
                 self.highlight_active_nav("Manage Clients")
                 
             elif content_type == "Manage Airlines":
-                view = AirlineView(self.content_frame)
+                view = AirlineView(self.content_frame, self.update_status)
                 self.highlight_active_nav("Manage Airlines")
                 
             elif content_type == "Manage Flights":
@@ -280,8 +280,11 @@ class App(tk.Tk):
         self.bind("<Escape>", lambda e: self.on_closing())
     
     def update_status(self, message):
-        """Update the status bar with a message."""
-        self.status_bar.config(text=message)
+        """Update the status bar with a message and timestamp."""
+        import datetime
+
+        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+        self.status_bar.config(text=f"[{timestamp}] {message}")
         self.update_idletasks()
     
     def on_closing(self):

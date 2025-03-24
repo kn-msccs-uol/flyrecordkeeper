@@ -11,10 +11,13 @@ class AirlineView(ttk.Frame):
     rec_man = None
     selected_item = None
 
-    def __init__(self, parent):
+    def __init__(self, parent, update_status=None):
         super(AirlineView, self).__init__()
 
         self.parent = parent
+
+        # Store the update_status function
+        self.update_status = update_status or (lambda msg: None)
 
         # Detect and configure system fonts
         import platform
@@ -234,8 +237,10 @@ class AirlineView(ttk.Frame):
                 if (self.rec_man.delete_record(row_id, "airline")):
                     self.treeview.delete(self.selected_item)
                     messagebox.showinfo("Delete Successful", "Airline deleted successfully!")
+                    self.update_status(f"Airline '{record_name}' (ID: {row_id}) has been successfully deleted")
             except Exception as e:
                 messagebox.showerror("Error", str(e))
+                self.update_status(f"Error deleting airline: {str(e)}")
 
     def search_item(self):
         """
@@ -313,16 +318,27 @@ class AirlineView(ttk.Frame):
 
     def open_child_window(self, rec, action):
         """Open a modal child window with 'OK' and 'Cancel' buttons."""
+        # Store original name
+        original_name = rec.company_name
+        
         result, output = airline_capture.AirlineCapture(rec, action).show()
 
         if (result):
             if (action == "Add"):
                 self.rec_man.airlines.append(output)
                 self.treeview.insert("", "end", values=(output.id, output.company_name))
+                self.update_status(f"New airline '{output.company_name}' (ID: {output.id}) has been successfully added")
             elif (action == "Edit"):
                 for a in self.rec_man.airlines:
                     if a.id == output.id:
                         a.company_name = output.company_name
                         self.treeview.item(self.selected_item, text="", values=(output.id, output.company_name))
+
+                        # Truncate long names to prevent status bar overflow
+                        MAX_LENGTH = 30
+                        old_display = (original_name[:MAX_LENGTH] + "...") if len(original_name) > MAX_LENGTH else original_name
+                        new_display = (output.company_name[:MAX_LENGTH] + "...") if len(output.company_name) > MAX_LENGTH else output.company_name
+
+                        self.update_status(f"Airline (ID: {output.id}) successfully updated: '{old_display}' ⟶ '{new_display}'")
 
         self.rec_man.save_to_file()
