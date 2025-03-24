@@ -393,6 +393,14 @@ class ClientView(ttk.Frame):
         original_name = None
         if action == "Edit":
             original_name = rec.name
+            original_address_line1 = rec.address_line1
+            original_address_line2 = rec.address_line2
+            original_address_line3 = rec.address_line3
+            original_city = rec.city
+            original_state = rec.state
+            original_zip_code = rec.zip_code
+            original_country = rec.country
+            original_phone_number = rec.phone_number
 
         result, output = client_capture.ClientCapture(rec, action).show()
 
@@ -423,13 +431,37 @@ class ClientView(ttk.Frame):
                                                                                 output.address_line2, output.address_line3, output.city,
                                                                                 output.state, output.zip_code, output.country, output.phone_number))
                         
-                        # Truncate long names to prevent status bar overflow
-                        old_display = self.truncate_name(original_name)
-                        new_display = self.truncate_name(output.name)
+                        # Check which fields have changed
+                        original_values = [
+                            original_name, original_address_line1, original_address_line2, 
+                            original_address_line3, original_city, original_state, 
+                            original_zip_code, original_country, original_phone_number
+                        ]
+                        new_values = [
+                            output.name, output.address_line1, output.address_line2, 
+                            output.address_line3, output.city, output.state, 
+                            output.zip_code, output.country, output.phone_number
+                        ]
 
-                        if old_display == new_display:
-                            self.update_status(f"Client '{new_display}' (ID: {output.id}) has been successfully updated")
-                        else:
+                        # Get a list of changed fields
+                        changed_fields = [i for i, (orig, new) in enumerate(zip(original_values, new_values)) if orig != new]
+                        name_changed = 0 in changed_fields  # Index 0 is the name field
+
+                        if not changed_fields:
+                            # No fields were changed, no status update
+                            pass
+
+                        elif len(changed_fields) == 1 and name_changed:
+                            # Only the name was changed
+                            old_display = self.truncate_name(original_name) # Truncate long names to prevent status bar overflow
+                            new_display = self.truncate_name(output.name)
+
                             self.update_status(f"Client (ID: {output.id})'s name has been successfully updated: '{old_display}' ⟶ '{new_display}'")
+                            
+                        else:
+                            # Multiple fields were changed
+                            new_display = self.truncate_name(output.name)
+                            
+                            self.update_status(f"Client '{new_display}' (ID: {output.id}) has been successfully updated")
 
         self.rec_man.save_to_file()
