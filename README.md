@@ -2,15 +2,15 @@
 *A Python desktop application for managing records for clients, airlines, and flights with JSON data persistence.*
 
 ## Table of Contents
-1. Project Description
-2. Technologies Used
-3. Challenges and Future Features
-4. Installation Guide
-5. Usage
-6. Tests
-7. Licence
+1. [Project Description](#1-project-description)
+2. [Technologies Used](#2-technologies-used)
+3. [Challenges and Future Features](#3-challenges--future-improvements)
+4. [Installation Guide](#4-installation-guide)
+5. [Usage](#5-usage)
+6. [Tests](#6-test)
+7. [Licence](#7-licence)
 
-**1. Project Description**
+### 1. Project Description
 
 The following repository is a Record Management System designed for a specialist travel agency to facilitate admin tasks associated with case management for three record types:
 - Client
@@ -22,7 +22,7 @@ The key features of the system are:
 - It persist data using JSON storage for reliable data storage.
 - It employ a simplified GUI interface built with Tkinter.
 
- **2. Technologies Used**
+### 2. Technologies Used
 
 - **Python**: As the core programming language for building a scalable application.
 - **JSON**: As confirmed for reliable and lightweight data storage, eliminating ddatabase dependency.
@@ -31,7 +31,7 @@ The key features of the system are:
 - **Calendar**: As displayed for date-time entry on Flight records for intuitive selection.
 - **TimePicker**: As displayed for date-time entry on Flight records for intuitive selection.
 
- **3. Challenges & Future Improvements**
+### 3. Challenges & Future Improvements
 
 The challenges faced:
 - To ensure a user-friendly GUI layout that would adapt to screen sizes (e.g. secondary windows).
@@ -41,7 +41,7 @@ The challenges faced:
 The improvements considered:
 - To improve UX design by promoting controls where user can select preferences (e.g. hide of display).
 
- **4. Installation Guide**
+### 4. Installation Guide
 
 These are the steps to set up locally:
 1. Clone the repository:
@@ -72,7 +72,7 @@ These are the steps to set up locally:
    python main.py
    ```
      
- **5. Usage**
+### 5. Usage
 
  Open the application (main.py).
  
@@ -81,7 +81,7 @@ These are the steps to set up locally:
    - **Manage Airlines**: Add, update, delete or search & view airline records.
    - **Manage Flights**: Add, update, delete or search & view flight records.
 
- **6. Test**
+### 6. Test
  
  The steps to run unit tests:
 1. Ensure virtual environment is active.
@@ -91,10 +91,9 @@ These are the steps to set up locally:
    ```
 The example tests include: 
 
- **7. Licence**
+### 7. Licence
  
 Copyright 2025 kn-msccs-uol, ddaniels-uni-of-liv, CM434, and kevinechevarria21
    
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- 
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
