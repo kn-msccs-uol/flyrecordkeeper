@@ -123,19 +123,3 @@ def validate_date(value: Any, field_name: str = "Date") -> Optional[str]:
         return f"{field_name} must be a datetime object"
     
     return None
-
-
-def get_validation_errors_summary(errors: Dict[str, str]) -> str:
-    """
-    Create a human-readable summary of validation errors.
-    
-    Args:
-        errors: Dictionary of field validation errors
-        
-    Returns:
-        Formatted error message string, or empty string if no errors
-    """
-    if not errors:
-        return ""
-        
-    return "; ".join(f"{key}: {value}" for key, value in errors.items())
