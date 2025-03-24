@@ -9,7 +9,9 @@ This project uses a "Structured Dictionaries with OO Benefits" approach where:
 3. The system maintains the benefits of both approaches
 """
 from typing import Dict, Any
+
 from models.base_record import BaseRecord
+from utils.validators import validate_required_field, validate_string
 
 
 class AirlineRecord(BaseRecord):
@@ -69,9 +71,7 @@ class AirlineRecord(BaseRecord):
             
         Returns:
             Dictionary of field validation errors (empty if validation succeeds)
-        """
-        from utils.validators import validate_required_field, validate_string
-        
+        """    
         # Start with base validation
         errors = super().validate(data)
         

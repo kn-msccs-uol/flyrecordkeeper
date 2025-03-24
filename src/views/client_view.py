@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
-from models import record_manager
-
 from views import client_capture
 
 class ClientView(ttk.Frame):

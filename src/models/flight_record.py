@@ -10,7 +10,9 @@ This project uses a "Structured Dictionaries with OO Benefits" approach where:
 """
 from typing import Dict, Any, List
 from datetime import datetime
+
 from models.base_record import BaseRecord
+from utils.validators import validate_required_field, validate_integer, validate_string, validate_date
 
 
 class FlightRecord(BaseRecord):
@@ -88,9 +90,7 @@ class FlightRecord(BaseRecord):
             
         Returns:
             Dictionary of field validation errors (empty if validation succeeds)
-        """
-        from utils.validators import validate_required_field, validate_integer, validate_string, validate_date
-        
+        """        
         # Start with base validation
         errors = super().validate(data)
         
