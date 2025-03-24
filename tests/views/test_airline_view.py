@@ -38,8 +38,8 @@ class TestAirlineView(unittest.TestCase):
     def setUp(self):
         self.root = tk.Tk()
         self.root.withdraw()
-        self.view = AirlineView(self.root)
-        self.view.rec_man = DummyRecordManager()
+        self.rec_man = DummyRecordManager()
+        self.view = AirlineView(self.root, self.rec_man)
         self.view.refresh_treeview()
 
     def tearDown(self):
