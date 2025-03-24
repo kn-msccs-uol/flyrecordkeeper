@@ -120,18 +120,15 @@ class AirlineView(ttk.Frame):
         # Define column headers and base widths
         self.column_base_widths = {
             "id": 70,                # Fixed width for ID
-            "company_name": 150,     # Reasonable space for company names
         }
 
-        # Configure all columns with headings and widths
-        for col, width in self.column_base_widths.items():
-            display_name = col.replace("_", " ").title()
-            if col == "id":
-                display_name = "ID"
+        # Configure ID column with heading and width
+        self.treeview.heading("id", text="ID")
+        self.treeview.column("id", width=70, minwidth=70//2, stretch=False)
 
-            # All columns should respect their base width initially
-            self.treeview.heading(col, text=display_name)
-            self.treeview.column(col, width=width, minwidth=width//2, stretch=True)
+        # Configure company_name column to be dynamic
+        self.treeview.heading("company_name", text="Company Name")
+        self.treeview.column("company_name", stretch=True)
 
         # Load data
         data = self.rec_man.get_records_by_type('airline')
@@ -170,22 +167,15 @@ class AirlineView(ttk.Frame):
             self.treeview.after(100, self.adjust_columns_and_scrollbar)
             return
 
-        # fixed: ID; proportionally variable: other columns)
+        # fixed: ID; proportionally variable: compnay name)
         id_width = self.column_base_widths["id"]
         available_width = treeview_width - id_width
-
-        # Get all columns except ID
-        flex_columns = [col for col in self.treeview["columns"] if col != "id"]
-        flex_total_base_width = sum(self.column_base_widths[col] for col in flex_columns)
 
         # Set ID column fixed
         self.treeview.column("id", width=id_width, stretch=False)
 
         # Distribute remaining width proportionally
-        for col in flex_columns:
-            proportion = self.column_base_widths[col] / flex_total_base_width
-            new_width = max(self.column_base_widths[col], int(available_width * proportion))
-            self.treeview.column(col, width=new_width, stretch=True)
+        self.treeview.column("company_name", width=available_width, stretch=True)
         
         # Update UI
         self.treeview.update_idletasks()
